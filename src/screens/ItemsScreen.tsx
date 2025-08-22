@@ -1,13 +1,20 @@
-
 import React, { useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
-import { Text, Searchbar, FAB, Chip, Card, Button } from 'react-native-paper';
+import { FlatList, View, Button } from 'react-native';
+import { Text, Searchbar, FAB, Chip, Card } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
 export default function ItemsScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Auth' }],
+    });
+  };
 
   const itemsQ = useQuery({
     queryKey: ['items'],
@@ -40,6 +47,7 @@ export default function ItemsScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 12, gap: 8 }}>
+        <Button title="Logout" onPress={handleLogout} />
         <Searchbar placeholder="Search items or SKU" value={query} onChangeText={setQuery} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {(tagsQ.data ?? []).map((t: any) => (
@@ -62,7 +70,7 @@ export default function ItemsScreen({ navigation }: any) {
               {item.tags?.length ? <Text>Tags: {item.tags.join(', ')}</Text> : null}
             </Card.Content>
             <Card.Actions>
-              <Button onPress={() => navigation.navigate('Stock', { itemId: item.id })}>Add Report</Button>
+              <Button title="Add Report" onPress={() => navigation.navigate('Stock', { itemId: item.id })} />
             </Card.Actions>
           </Card>
         )}
