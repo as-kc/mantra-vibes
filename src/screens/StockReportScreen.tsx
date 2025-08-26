@@ -150,7 +150,7 @@ export default function StockReportScreen({ route }: any) {
         );
       })}
 
-      <TextInput label="Batch note (optional)" value={note} onChangeText={setNote} />
+      <TextInput label="Note (optional)" value={note} onChangeText={setNote} />
       <TextInput 
         label="Total revenue (optional)" 
         value={totalRevenue} 
@@ -159,7 +159,6 @@ export default function StockReportScreen({ route }: any) {
       />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
         <Text>Total sold: {totals.sold}</Text>
-        <Text>Total revenue: {totalRevenue ? parseFloat(totalRevenue).toFixed(2) : '0.00'}</Text>
       </View>
 
       <Button mode="contained" onPress={handleSave}>Save Report</Button>
