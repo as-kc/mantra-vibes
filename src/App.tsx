@@ -14,6 +14,7 @@ import StockReportScreen from './screens/StockReportScreen';
 import ReportsScreen from './screens/ReportsScreen';
 import AdminScreen from './screens/AdminScreen';
 import { useProfileRole } from './hooks/useProfileRole';
+import { ReportProvider } from './contexts/ReportContext';
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
@@ -43,16 +44,18 @@ export default function App() {
   return (
     <PaperProvider>
       <QueryClientProvider client={queryClient}>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {session ? (
-              <Stack.Screen name="Main" component={AppTabs} />
-            ) : (
-              <Stack.Screen name="Auth" component={AuthScreen} />
-            )}
-            <Stack.Screen name="AddItem" component={AddItemScreen} options={{ headerShown: true, title: 'Add Item' }} />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <ReportProvider>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              {session ? (
+                <Stack.Screen name="Main" component={AppTabs} />
+              ) : (
+                <Stack.Screen name="Auth" component={AuthScreen} />
+              )}
+              <Stack.Screen name="AddItem" component={AddItemScreen} options={{ headerShown: true, title: 'Add Item' }} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ReportProvider>
       </QueryClientProvider>
     </PaperProvider>
   );

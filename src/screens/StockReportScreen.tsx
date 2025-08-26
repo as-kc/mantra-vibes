@@ -1,26 +1,36 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
-import { TextInput, Button, Text, Card, Portal, Dialog, Searchbar, List } from 'react-native-paper';
+import { TextInput, Button, Text, Card, Portal, Dialog, Searchbar, List, IconButton } from 'react-native-paper';
 import { supabase } from '../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
-
-type Line = {
-  itemId: string | null;
-  start: string;
-  end: string;
-  revenue: string;
-};
+import { useReport } from '../contexts/ReportContext';
 
 export default function StockReportScreen({ route }: any) {
   const itemIdParam = route?.params?.itemId || null;
-  const [note, setNote] = useState('');
-  const [lines, setLines] = useState<Line[]>([
-    { itemId: itemIdParam, start: '0', end: '0', revenue: '' },
-  ]);
+  const [reportName, setReportName] = useState('Current Report');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [pickerLineIndex, setPickerLineIndex] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [clearDialogVisible, setClearDialogVisible] = useState(false);
+
+  const {
+    lines,
+    note,
+    addItemToReport,
+    removeLine,
+    setLine,
+    addLine,
+    setNote,
+    clearReport,
+  } = useReport();
+
+  // Initialize with route param if provided
+  useEffect(() => {
+    if (itemIdParam && !lines.some(l => l.itemId === itemIdParam)) {
+      addItemToReport(itemIdParam);
+    }
+  }, [itemIdParam, addItemToReport, lines]);
 
   const itemsQ = useQuery({
     queryKey: ['items-basic'],
@@ -43,18 +53,6 @@ export default function StockReportScreen({ route }: any) {
     );
   }, [lines]);
 
-  const setLine = (idx: number, patch: Partial<Line>) => {
-    setLines(prev => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
-  };
-
-  const addLine = () => {
-    setLines(prev => [...prev, { itemId: itemsQ.data?.[0]?.id ?? null, start: '0', end: '0', revenue: '' }]);
-  };
-
-  const removeLine = (idx: number) => {
-    setLines(prev => prev.filter((_, i) => i !== idx));
-  };
-
   const handleSave = async () => {
     if (!lines.length) { alert('Add at least one item'); return; }
     if (lines.some(l => !l.itemId)) { alert('Each line needs an item'); return; }
@@ -71,6 +69,7 @@ export default function StockReportScreen({ route }: any) {
     } as any);
     if (error) { alert(error.message); return; }
     alert('Saved');
+    clearReport();
   };
 
   const openPicker = (idx: number) => {
@@ -91,9 +90,34 @@ export default function StockReportScreen({ route }: any) {
     return list.filter((it: any) => (it.name || '').toLowerCase().includes(q));
   }, [itemsQ.data, search]);
 
+  const addFirstItem = () => {
+    addLine();
+    // open picker for the new first line
+    setTimeout(() => {
+      openPicker((lines.length));
+    }, 0);
+  };
+
+  const handleClearReport = () => {
+    clearReport();
+    setClearDialogVisible(false);
+  };
+
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Text variant="titleLarge">New Stock Report</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text variant="titleLarge">{reportName}</Text>
+        <IconButton icon="delete" onPress={() => setClearDialogVisible(true)} />
+      </View>
+
+      {lines.length === 0 && (
+        <Card style={{ padding: 12 }}>
+          <Text>No items in this report yet.</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+            <Button onPress={addFirstItem}>Add first item</Button>
+          </View>
+        </Card>
+      )}
 
       {lines.map((l, idx) => {
         const sold = Math.max(0, parseInt(l.start || '0', 10) - parseInt(l.end || '0', 10));
@@ -126,6 +150,7 @@ export default function StockReportScreen({ route }: any) {
 
       <Button mode="contained" onPress={handleSave}>Save Report</Button>
 
+      {/* Item Picker Dialog */}
       <Portal>
         <Dialog visible={pickerVisible} onDismiss={closePicker}>
           <Dialog.Title>Select item</Dialog.Title>
@@ -152,6 +177,20 @@ export default function StockReportScreen({ route }: any) {
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={closePicker}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      {/* Clear Report Confirmation Dialog */}
+      <Portal>
+        <Dialog visible={clearDialogVisible} onDismiss={() => setClearDialogVisible(false)}>
+          <Dialog.Title>Clear Current Report?</Dialog.Title>
+          <Dialog.Content>
+            <Text>This will remove all items from the current report. Are you sure?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setClearDialogVisible(false)}>Cancel</Button>
+            <Button onPress={handleClearReport}>Clear Report</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
