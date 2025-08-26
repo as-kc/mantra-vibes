@@ -16,6 +16,7 @@ import AdminScreen from './screens/AdminScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import { useProfileRole } from './hooks/useProfileRole';
 import { ReportProvider } from './contexts/ReportContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
@@ -24,7 +25,27 @@ const queryClient = new QueryClient();
 function AppTabs() {
   const role = useProfileRole();
   return (
-    <Tabs.Navigator>
+    <Tabs.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Items') {
+            iconName = 'package-variant';
+          } else if (route.name === 'Reports') {
+            iconName = 'chart-line';
+          } else if (route.name === 'Stock') {
+            iconName = 'plus-circle';
+          } else if (route.name === 'Admin') {
+            iconName = 'shield-account';
+          } else if (route.name === 'Profile') {
+            iconName = 'account';
+          }
+
+          return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+        },
+      })}
+    >
       <Tabs.Screen name="Items" component={ItemsScreen} />
       <Tabs.Screen name="Reports" component={ReportsScreen} />
       <Tabs.Screen name="Stock" component={StockReportScreen} options={{ title: 'Add Report' }} />
