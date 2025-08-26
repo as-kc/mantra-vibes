@@ -1,15 +1,21 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, View, Button } from 'react-native';
 import { Text, Searchbar, FAB, Chip, Card, IconButton } from 'react-native-paper';
-import { ConfirmationDialog } from '../components/ConfirmationDialog';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useReport } from '../contexts/ReportContext';
+import { ConfirmationDialog } from '../components/ConfirmationDialog';
+import { ItemModal } from '../components/ItemModal';
 
 export default function ItemsScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [clearDialogVisible, setClearDialogVisible] = useState(false);
+  const [itemModalVisible, setItemModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+
+  const queryClient = useQueryClient();
 
   const {
     addItemToReport,
@@ -19,8 +25,6 @@ export default function ItemsScreen({ navigation }: any) {
     removeLine,
     lines,
   } = useReport();
-
-
 
   const handleAddItemToReport = (itemId: string) => {
     addItemToReport(itemId);
@@ -34,6 +38,129 @@ export default function ItemsScreen({ navigation }: any) {
   const handleClearReport = () => {
     clearReport();
     setClearDialogVisible(false);
+  };
+
+  const handleEditItem = (item: any) => {
+    setEditingItem(item);
+    setModalMode('edit');
+    setItemModalVisible(true);
+  };
+
+  const handleAddItem = () => {
+    setEditingItem(null);
+    setModalMode('add');
+    setItemModalVisible(true);
+  };
+
+  const handleSaveItem = async (formData: any, tags: string[]) => {
+    try {
+      if (modalMode === 'add') {
+        // Create new item
+        const { data: itemData, error: itemError } = await supabase
+          .from('items')
+          .insert({
+            name: formData.name.trim(),
+            sku: formData.sku.trim() || null,
+            current_stock: parseInt(formData.current_stock) || 0,
+            low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
+          })
+          .select()
+          .single();
+
+        if (itemError) throw itemError;
+
+        // Add tags
+        for (const tagName of tags) {
+          const { data: tagData, error: tagError } = await supabase
+            .from('tags')
+            .upsert({ name: tagName }, { onConflict: 'name' })
+            .select()
+            .single();
+
+          if (tagError) throw tagError;
+
+          await supabase
+            .from('item_tags')
+            .insert({ item_id: itemData.id, tag_id: tagData.id });
+        }
+
+      } else {
+        // Update existing item
+        const { error: itemError } = await supabase
+          .from('items')
+          .update({
+            name: formData.name.trim(),
+            sku: formData.sku.trim() || null,
+            current_stock: parseInt(formData.current_stock) || 0,
+            low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
+          })
+          .eq('id', editingItem.id);
+
+        if (itemError) throw itemError;
+
+        // Handle tags
+        const currentTags = editingItem.tags || [];
+        const tagsToAdd = tags.filter(tag => !currentTags.includes(tag));
+        const tagsToRemove = currentTags.filter(tag => !tags.includes(tag));
+
+        // Add new tags
+        for (const tagName of tagsToAdd) {
+          const { data: tagData, error: tagError } = await supabase
+            .from('tags')
+            .upsert({ name: tagName }, { onConflict: 'name' })
+            .select()
+            .single();
+
+          if (tagError) throw tagError;
+
+          await supabase
+            .from('item_tags')
+            .insert({ item_id: editingItem.id, tag_id: tagData.id });
+        }
+
+        // Remove tags
+        for (const tagName of tagsToRemove) {
+          const { data: tagData } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('name', tagName)
+            .single();
+
+          if (tagData) {
+            await supabase
+              .from('item_tags')
+              .delete()
+              .eq('item_id', editingItem.id)
+              .eq('tag_id', tagData.id);
+          }
+        }
+      }
+
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      queryClient.invalidateQueries({ queryKey: ['items-basic'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+
+    } catch (error: any) {
+      alert(`Error ${modalMode === 'add' ? 'creating' : 'updating'} item: ` + error.message);
+      throw error;
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    const { error } = await supabase
+      .from('items')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) {
+      alert('Error deleting item: ' + error.message);
+      throw error;
+    }
+
+    // Invalidate queries to refresh the data
+    queryClient.invalidateQueries({ queryKey: ['items'] });
+    queryClient.invalidateQueries({ queryKey: ['items-basic'] });
   };
 
   const itemsQ = useQuery({
@@ -118,13 +245,17 @@ export default function ItemsScreen({ navigation }: any) {
                     onPress={() => handleAddItemToReport(item.id)}
                   />
                 )}
+                <IconButton 
+                  icon="pencil" 
+                  onPress={() => handleEditItem(item)}
+                />
               </Card.Actions>
             </Card>
           );
         }}
       />
 
-      <FAB style={{ position: 'absolute', right: 16, bottom: 16 }} icon="plus" onPress={() => navigation.navigate('AddItem')} />
+      <FAB style={{ position: 'absolute', right: 16, bottom: 16 }} icon="plus" onPress={handleAddItem} />
 
       {/* Clear Report Confirmation Dialog */}
       <ConfirmationDialog
@@ -135,6 +266,16 @@ export default function ItemsScreen({ navigation }: any) {
         message="This will remove all items from the current report. Are you sure?"
         confirmText="Clear Report"
         cancelText="Cancel"
+      />
+
+      {/* Reusable Item Modal */}
+      <ItemModal
+        visible={itemModalVisible}
+        onDismiss={() => setItemModalVisible(false)}
+        onSave={handleSaveItem}
+        onDelete={modalMode === 'edit' ? handleDeleteItem : undefined}
+        item={editingItem}
+        mode={modalMode}
       />
     </View>
   );

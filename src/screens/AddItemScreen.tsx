@@ -1,40 +1,72 @@
 
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { ItemModal } from '../components/ItemModal';
 
 export default function AddItemScreen({ navigation }: any) {
-  const [name, setName] = useState('');
-  const [sku, setSku] = useState('');
-  const [initialStock, setInitialStock] = useState('0');
-  const [lowThreshold, setLowThreshold] = useState('5');
-  const [tagsCsv, setTagsCsv] = useState('');
+  const [modalVisible, setModalVisible] = useState(true);
+  const queryClient = useQueryClient();
 
-  const handleAdd = async () => {
-    const { data, error } = await supabase.rpc('add_item_with_tags', {
-      p_name: name,
-      p_sku: sku || null,
-      p_initial_stock: parseInt(initialStock || '0', 10),
-      p_low_stock_threshold: parseInt(lowThreshold || '0', 10),
-      p_tags_csv: tagsCsv || null
-    });
-    if (error) {
-      alert(error.message);
-    } else {
+  const handleSave = async (formData: any, tags: string[]) => {
+    try {
+      // Create new item
+      const { data: itemData, error: itemError } = await supabase
+        .from('items')
+        .insert({
+          name: formData.name.trim(),
+          sku: formData.sku.trim() || null,
+          current_stock: parseInt(formData.current_stock) || 0,
+          low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
+        })
+        .select()
+        .single();
+
+      if (itemError) throw itemError;
+
+      // Add tags
+      for (const tagName of tags) {
+        const { data: tagData, error: tagError } = await supabase
+          .from('tags')
+          .upsert({ name: tagName }, { onConflict: 'name' })
+          .select()
+          .single();
+
+        if (tagError) throw tagError;
+
+        await supabase
+          .from('item_tags')
+          .insert({ item_id: itemData.id, tag_id: tagData.id });
+      }
+
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      queryClient.invalidateQueries({ queryKey: ['items-basic'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+
+      // Navigate back
       navigation.goBack();
+
+    } catch (error: any) {
+      alert('Error creating item: ' + error.message);
+      throw error;
     }
   };
 
+  const handleDismiss = () => {
+    navigation.goBack();
+  };
+
   return (
-    <View style={{ flex: 1, padding: 16, gap: 8 }}>
-      <Text variant="titleLarge">Add New Item</Text>
-      <TextInput label="Name" value={name} onChangeText={setName} />
-      <TextInput label="SKU (optional)" value={sku} onChangeText={setSku} />
-      <TextInput label="Initial Stock" value={initialStock} onChangeText={setInitialStock} keyboardType="number-pad" />
-      <TextInput label="Low-stock threshold" value={lowThreshold} onChangeText={setLowThreshold} keyboardType="number-pad" />
-      <TextInput label="Tags CSV (e.g. bestseller,gift)" value={tagsCsv} onChangeText={setTagsCsv} />
-      <Button mode="contained" onPress={handleAdd}>Save</Button>
+    <View style={{ flex: 1 }}>
+      <ItemModal
+        visible={modalVisible}
+        onDismiss={handleDismiss}
+        onSave={handleSave}
+        mode="add"
+      />
     </View>
   );
 }
