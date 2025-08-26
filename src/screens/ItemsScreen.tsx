@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, View, Button } from 'react-native';
-import { Text, Searchbar, FAB, Chip, Card, Portal, Dialog, IconButton } from 'react-native-paper';
+import { Text, Searchbar, FAB, Chip, Card, IconButton } from 'react-native-paper';
+import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useReport } from '../contexts/ReportContext';
@@ -133,18 +134,15 @@ export default function ItemsScreen({ navigation }: any) {
       <FAB style={{ position: 'absolute', right: 16, bottom: 16 }} icon="plus" onPress={() => navigation.navigate('AddItem')} />
 
       {/* Clear Report Confirmation Dialog */}
-      <Portal>
-        <Dialog visible={clearDialogVisible} onDismiss={() => setClearDialogVisible(false)}>
-          <Dialog.Title>Clear Current Report?</Dialog.Title>
-          <Dialog.Content>
-            <Text>This will remove all items from the current report. Are you sure?</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button title="Cancel" onPress={() => setClearDialogVisible(false)} />
-            <Button title="Clear Report" onPress={handleClearReport} />
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      <ConfirmationDialog
+        visible={clearDialogVisible}
+        onDismiss={() => setClearDialogVisible(false)}
+        onConfirm={handleClearReport}
+        title="Clear Current Report?"
+        message="This will remove all items from the current report. Are you sure?"
+        confirmText="Clear Report"
+        cancelText="Cancel"
+      />
     </View>
   );
 }

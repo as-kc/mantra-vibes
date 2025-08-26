@@ -2,6 +2,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { TextInput, Button, Text, Card, Portal, Dialog, Searchbar, List, IconButton } from 'react-native-paper';
+import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { supabase } from '../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { useReport } from '../contexts/ReportContext';
@@ -182,18 +183,15 @@ export default function StockReportScreen({ route }: any) {
       </Portal>
 
       {/* Clear Report Confirmation Dialog */}
-      <Portal>
-        <Dialog visible={clearDialogVisible} onDismiss={() => setClearDialogVisible(false)}>
-          <Dialog.Title>Clear Current Report?</Dialog.Title>
-          <Dialog.Content>
-            <Text>This will remove all items from the current report. Are you sure?</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setClearDialogVisible(false)}>Cancel</Button>
-            <Button onPress={handleClearReport}>Clear Report</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      <ConfirmationDialog
+        visible={clearDialogVisible}
+        onDismiss={() => setClearDialogVisible(false)}
+        onConfirm={handleClearReport}
+        title="Clear Current Report?"
+        message="This will remove all items from the current report. Are you sure?"
+        confirmText="Clear Report"
+        cancelText="Cancel"
+      />
     </ScrollView>
   );
 }
