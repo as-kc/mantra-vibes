@@ -1,29 +1,62 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { Button, Card, Text, TextInput } from 'react-native-paper';
+import { Card, Text, TextInput } from 'react-native-paper';
 import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+
+type LineRow = {
+  report_id: string;
+  line_id: string;
+  item_id: string;
+  item_name: string;
+  start_stock: number;
+  end_stock: number;
+  sold: number;
+  revenue: number | null;
+  note: string | null;
+  total_revenue: number | null;
+  created_at: string;
+};
 
 export default function ReportsScreen() {
   const [from, setFrom] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
   const [to, setTo] = useState(dayjs().endOf('month').format('YYYY-MM-DD'));
 
   const reportsQ = useQuery({
-    queryKey: ['reports', from, to],
+    queryKey: ['reports-multi', from, to],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('reports_between', { p_from: from, p_to: to });
+      const { data, error } = await supabase.rpc('reports_between_multi', { p_from: from, p_to: to });
       if (error) throw error;
-      return data as any[];
+      return (data ?? []) as LineRow[];
     }
   });
 
-  const totals = (reportsQ.data ?? []).reduce((acc: any, r: any) => {
-    acc.sold += r.sold;
-    acc.revenue += r.revenue || 0;
-    return acc;
-  }, { sold: 0, revenue: 0 });
+  const grouped = useMemo(() => {
+    const rows = reportsQ.data ?? [];
+    const byReport: Record<string, { created_at: string; note: string | null; total_revenue: number | null; lines: LineRow[]; }>
+      = {};
+    for (const r of rows) {
+      if (!byReport[r.report_id]) {
+        byReport[r.report_id] = { created_at: r.created_at, note: r.note, total_revenue: r.total_revenue, lines: [] };
+      }
+      byReport[r.report_id].lines.push(r);
+    }
+    const list = Object.entries(byReport)
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => dayjs(b.created_at).valueOf() - dayjs(a.created_at).valueOf());
+    return list;
+  }, [reportsQ.data]);
+
+  const totals = useMemo(() => {
+    const rows = reportsQ.data ?? [];
+    return rows.reduce((acc, r) => {
+      acc.sold += r.sold;
+      acc.revenue += r.revenue || 0;
+      return acc;
+    }, { sold: 0, revenue: 0 });
+  }, [reportsQ.data]);
 
   return (
     <View style={{ flex: 1, padding: 12 }}>
@@ -38,15 +71,21 @@ export default function ReportsScreen() {
       </View>
 
       <FlatList
-        data={reportsQ.data ?? []}
+        data={grouped}
         keyExtractor={(r: any) => r.id}
         renderItem={({ item }: any) => (
           <Card style={{ marginVertical: 6 }}>
-            <Card.Title title={item.item_name} subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')} />
+            <Card.Title title={`Report`} subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')} />
             <Card.Content>
-              <Text>Start: {item.start_stock}  End: {item.end_stock}  Sold: {item.sold}</Text>
-              {item.revenue != null && <Text>Revenue: {item.revenue}</Text>}
+              {item.lines.map((ln: LineRow) => (
+                <View key={ln.line_id} style={{ marginBottom: 6 }}>
+                  <Text style={{ fontWeight: '600' }}>{ln.item_name}</Text>
+                  <Text>Start: {ln.start_stock}  End: {ln.end_stock}  Sold: {ln.sold}</Text>
+                  {ln.revenue != null && <Text>Revenue: {ln.revenue}</Text>}
+                </View>
+              ))}
               {item.note && <Text>Note: {item.note}</Text>}
+              {item.total_revenue != null && <Text>Total revenue (batch): {item.total_revenue}</Text>}
             </Card.Content>
           </Card>
         )}

@@ -1,61 +1,160 @@
 
-import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import React, { useMemo, useState } from 'react';
+import { View, ScrollView } from 'react-native';
+import { TextInput, Button, Text, Card, Portal, Dialog, Searchbar, List } from 'react-native-paper';
 import { supabase } from '../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 
+type Line = {
+  itemId: string | null;
+  start: string;
+  end: string;
+  revenue: string;
+};
+
 export default function StockReportScreen({ route }: any) {
   const itemIdParam = route?.params?.itemId || null;
-  const [itemId, setItemId] = useState<string | null>(itemIdParam);
-  const [start, setStart] = useState('0');
-  const [end, setEnd] = useState('0');
-  const [revenue, setRevenue] = useState('');
   const [note, setNote] = useState('');
+  const [lines, setLines] = useState<Line[]>([
+    { itemId: itemIdParam, start: '0', end: '0', revenue: '' },
+  ]);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickerLineIndex, setPickerLineIndex] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
 
   const itemsQ = useQuery({
     queryKey: ['items-basic'],
     queryFn: async () => {
       const { data, error } = await supabase.from('items').select('id,name').order('name');
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
-  const sold = Math.max(0, parseInt(start || '0', 10) - parseInt(end || '0', 10));
+  const totals = useMemo(() => {
+    return lines.reduce(
+      (acc, l) => {
+        const sold = Math.max(0, parseInt(l.start || '0', 10) - parseInt(l.end || '0', 10));
+        acc.sold += sold;
+        acc.revenue += l.revenue ? parseFloat(l.revenue) : 0;
+        return acc;
+      },
+      { sold: 0, revenue: 0 }
+    );
+  }, [lines]);
+
+  const setLine = (idx: number, patch: Partial<Line>) => {
+    setLines(prev => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
+  };
+
+  const addLine = () => {
+    setLines(prev => [...prev, { itemId: itemsQ.data?.[0]?.id ?? null, start: '0', end: '0', revenue: '' }]);
+  };
+
+  const removeLine = (idx: number) => {
+    setLines(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const handleSave = async () => {
-    if (!itemId) { alert('Select an item'); return; }
-    const { error } = await supabase.rpc('record_stock_report', {
-      p_item_id: itemId,
-      p_start_stock: parseInt(start || '0', 10),
-      p_end_stock: parseInt(end || '0', 10),
-      p_revenue: revenue ? parseFloat(revenue) : null,
-      p_note: note || null
-    });
+    if (!lines.length) { alert('Add at least one item'); return; }
+    if (lines.some(l => !l.itemId)) { alert('Each line needs an item'); return; }
+    const payload = lines.map(l => ({
+      item_id: l.itemId,
+      start_stock: parseInt(l.start || '0', 10),
+      end_stock: parseInt(l.end || '0', 10),
+      revenue: l.revenue ? parseFloat(l.revenue) : null,
+    }));
+    const { error } = await supabase.rpc('record_stock_report_multi', {
+      p_note: note || null,
+      p_total_revenue: null,
+      p_lines: payload,
+    } as any);
     if (error) { alert(error.message); return; }
     alert('Saved');
   };
 
+  const openPicker = (idx: number) => {
+    setPickerLineIndex(idx);
+    setPickerVisible(true);
+  };
+
+  const closePicker = () => {
+    setPickerVisible(false);
+    setPickerLineIndex(null);
+    setSearch('');
+  };
+
+  const filteredItems = useMemo(() => {
+    const list = itemsQ.data ?? [];
+    const q = (search || '').toLowerCase();
+    if (!q) return list;
+    return list.filter((it: any) => (it.name || '').toLowerCase().includes(q));
+  }, [itemsQ.data, search]);
+
   return (
-    <View style={{ flex: 1, padding: 16, gap: 8 }}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
       <Text variant="titleLarge">New Stock Report</Text>
-      {/* Minimal picker */}
-      <Text>Item</Text>
-      <View style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 8 }}>
-        <Text onPress={() => { /* could implement a proper picker; for starter use first item */ }}>
-          {itemId ? (itemsQ.data?.find((i:any)=>i.id===itemId)?.name ?? itemId) : 'Tap "Use first item" for demo'}
-        </Text>
-        <Button onPress={() => { if (itemsQ.data?.length) setItemId(itemsQ.data[0].id); }}>Use first item</Button>
+
+      {lines.map((l, idx) => {
+        const sold = Math.max(0, parseInt(l.start || '0', 10) - parseInt(l.end || '0', 10));
+        const itemName = l.itemId ? (itemsQ.data?.find((i:any)=>i.id===l.itemId)?.name ?? l.itemId) : 'Select item';
+        return (
+          <Card key={idx} style={{ padding: 12 }}>
+            <Text variant="titleMedium">Line {idx + 1}</Text>
+            <Text>Item</Text>
+            <View style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 8 }}>
+              <Text>{itemName}</Text>
+              <Button onPress={() => openPicker(idx)}>Select item</Button>
+            </View>
+            <TextInput label="Starting stock" value={l.start} onChangeText={(v)=>setLine(idx,{start:v})} keyboardType="number-pad" />
+            <TextInput label="Ending stock" value={l.end} onChangeText={(v)=>setLine(idx,{end:v})} keyboardType="number-pad" />
+            <Text>Sold (auto): {sold}</Text>
+            <TextInput label="Revenue (optional)" value={l.revenue} onChangeText={(v)=>setLine(idx,{revenue:v})} keyboardType="decimal-pad" />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+              <Button onPress={() => removeLine(idx)}>Remove</Button>
+              {idx === lines.length - 1 && <Button onPress={addLine}>Add another item</Button>}
+            </View>
+          </Card>
+        );
+      })}
+
+      <TextInput label="Batch note (optional)" value={note} onChangeText={setNote} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
+        <Text>Total sold: {totals.sold}</Text>
+        <Text>Total revenue: {totals.revenue.toFixed(2)}</Text>
       </View>
 
-      <TextInput label="Starting stock" value={start} onChangeText={setStart} keyboardType="number-pad" />
-      <TextInput label="Ending stock" value={end} onChangeText={setEnd} keyboardType="number-pad" />
-      <Text>Sold (auto): {sold}</Text>
-      <TextInput label="Revenue (optional)" value={revenue} onChangeText={setRevenue} keyboardType="decimal-pad" />
-      <TextInput label="Note (optional)" value={note} onChangeText={setNote} />
-
       <Button mode="contained" onPress={handleSave}>Save Report</Button>
-    </View>
+
+      <Portal>
+        <Dialog visible={pickerVisible} onDismiss={closePicker}>
+          <Dialog.Title>Select item</Dialog.Title>
+          <Dialog.Content>
+            <Searchbar placeholder="Search items" value={search} onChangeText={setSearch} style={{ marginBottom: 8 }} />
+            {itemsQ.isLoading && <Text>Loading…</Text>}
+            {!itemsQ.isLoading && (
+              <ScrollView style={{ maxHeight: 300 }}>
+                {filteredItems.map((it: any) => (
+                  <List.Item
+                    key={it.id}
+                    title={it.name}
+                    onPress={() => {
+                      if (pickerLineIndex != null) {
+                        setLine(pickerLineIndex, { itemId: it.id });
+                      }
+                      closePicker();
+                    }}
+                  />
+                ))}
+                {filteredItems.length === 0 && <Text>No items</Text>}
+              </ScrollView>
+            )}
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={closePicker}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </ScrollView>
   );
 }

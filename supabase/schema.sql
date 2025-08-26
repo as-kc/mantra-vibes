@@ -58,6 +58,25 @@ create table if not exists public.stock_reports (
   created_at timestamptz default now()
 );
 
+-- Multi-item Stock Report (header + lines)
+create table if not exists public.stock_report_batches (
+  id uuid primary key default gen_random_uuid(),
+  total_revenue numeric(12,2),
+  note text,
+  created_by uuid references public.profiles(id),
+  created_at timestamptz default now()
+);
+
+create table if not exists public.stock_report_lines (
+  id uuid primary key default gen_random_uuid(),
+  report_id uuid not null references public.stock_report_batches(id) on delete cascade,
+  item_id uuid not null references public.items(id) on delete cascade,
+  start_stock integer not null,
+  end_stock integer not null,
+  sold integer not null,
+  revenue numeric(12,2)
+);
+
 -- View for items with tags + is_low flag
 create or replace view public.items_view as
 select
@@ -131,6 +150,63 @@ begin
   return v_id;
 end $$;
 
+-- RPC: record multi-item stock report
+-- p_lines is an array of objects: [{item_id, start_stock, end_stock, revenue}]
+create or replace function public.record_stock_report_multi(
+  p_note text,
+  p_total_revenue numeric,
+  p_lines jsonb
+) returns uuid
+language plpgsql security definer
+as $$
+declare
+  v_report_id uuid;
+  v_line jsonb;
+  v_item_id uuid;
+  v_start int;
+  v_end int;
+  v_sold int;
+  v_rev numeric;
+  v_sum_rev numeric := 0;
+begin
+  insert into public.stock_report_batches (note, total_revenue, created_by)
+  values (p_note, p_total_revenue, auth.uid())
+  returning id into v_report_id;
+
+  if p_lines is null or jsonb_array_length(p_lines) = 0 then
+    return v_report_id; -- empty report allowed
+  end if;
+
+  for v_line in select * from jsonb_array_elements(p_lines)
+  loop
+    v_item_id := (v_line->>'item_id')::uuid;
+    v_start := coalesce((v_line->>'start_stock')::int, 0);
+    v_end := coalesce((v_line->>'end_stock')::int, 0);
+    v_rev := (v_line->>'revenue')::numeric;
+    v_sold := greatest(0, v_start - v_end);
+
+    update public.items
+    set current_stock = greatest(0, current_stock - v_sold)
+    where id = v_item_id;
+
+    insert into public.stock_report_lines (report_id, item_id, start_stock, end_stock, sold, revenue)
+    values (v_report_id, v_item_id, v_start, v_end, v_sold, v_rev);
+
+    if v_rev is not null then
+      v_sum_rev := coalesce(v_sum_rev, 0) + v_rev;
+    end if;
+  end loop;
+
+  -- If total not passed, set to sum of line revenues
+  if p_total_revenue is null then
+    update public.stock_report_batches
+    set total_revenue = v_sum_rev
+    where id = v_report_id;
+  end if;
+
+  return v_report_id;
+end $$;
+
 -- Report RPC
 create or replace function public.reports_between(p_from date, p_to date)
 returns table (
@@ -154,15 +230,55 @@ as $$
   order by r.created_at desc;
 $$;
 
+-- Multi-item Report RPC (flattened rows)
+create or replace function public.reports_between_multi(p_from date, p_to date)
+returns table (
+  report_id uuid,
+  line_id uuid,
+  item_id uuid,
+  item_name text,
+  start_stock int,
+  end_stock int,
+  sold int,
+  revenue numeric,
+  note text,
+  total_revenue numeric,
+  created_at timestamptz
+)
+language sql security definer
+as $$
+  select b.id as report_id,
+         l.id as line_id,
+         l.item_id,
+         i.name as item_name,
+         l.start_stock,
+         l.end_stock,
+         l.sold,
+         l.revenue,
+         b.note,
+         b.total_revenue,
+         b.created_at
+  from public.stock_report_batches b
+  join public.stock_report_lines l on l.report_id = b.id
+  join public.items i on i.id = l.item_id
+  where b.created_at >= p_from::timestamptz
+    and b.created_at < (p_to::timestamptz + interval '1 day')
+  order by b.created_at desc, i.name asc;
+$$;
+
 -- RLS
 alter table public.profiles enable row level security;
 alter table public.items enable row level security;
 alter table public.tags enable row level security;
 alter table public.item_tags enable row level security;
 alter table public.stock_reports enable row level security;
+alter table public.stock_report_batches enable row level security;
+alter table public.stock_report_lines enable row level security;
 
 -- Policies
 -- Profiles: users can view themselves; admins can view all
+drop policy if exists "profiles select self or admin" on public.profiles;
+drop policy if exists "profiles update self" on public.profiles;
 create policy "profiles select self or admin"
 on public.profiles for select
 using (
@@ -174,6 +290,10 @@ on public.profiles for update
 using (id = auth.uid());
 
 -- Items: anyone authenticated can select; insert/update by any authenticated; deletes by admin
+drop policy if exists "items select all authed" on public.items;
+drop policy if exists "items insert authed" on public.items;
+drop policy if exists "items update authed" on public.items;
+drop policy if exists "items delete admin" on public.items;
 create policy "items select all authed" on public.items for select using (auth.uid() is not null);
 create policy "items insert authed" on public.items for insert with check (auth.uid() is not null);
 create policy "items update authed" on public.items for update using (auth.uid() is not null);
@@ -182,18 +302,47 @@ create policy "items delete admin" on public.items for delete using (
 );
 
 -- Tags & item_tags similar
+drop policy if exists "tags select all authed" on public.tags;
+drop policy if exists "tags upsert authed" on public.tags;
+drop policy if exists "tags update authed" on public.tags;
 create policy "tags select all authed" on public.tags for select using (auth.uid() is not null);
 create policy "tags upsert authed" on public.tags for insert with check (auth.uid() is not null);
 create policy "tags update authed" on public.tags for update using (auth.uid() is not null);
 
+drop policy if exists "item_tags select all authed" on public.item_tags;
+drop policy if exists "item_tags upsert authed" on public.item_tags;
+drop policy if exists "item_tags delete authed" on public.item_tags;
 create policy "item_tags select all authed" on public.item_tags for select using (auth.uid() is not null);
 create policy "item_tags upsert authed" on public.item_tags for insert with check (auth.uid() is not null);
 create policy "item_tags delete authed" on public.item_tags for delete using (auth.uid() is not null);
 
 -- Stock reports: select all; insert/update own; delete admin
+drop policy if exists "stock_reports select all authed" on public.stock_reports;
+drop policy if exists "stock_reports insert authed" on public.stock_reports;
+drop policy if exists "stock_reports update own" on public.stock_reports;
+drop policy if exists "stock_reports delete admin" on public.stock_reports;
 create policy "stock_reports select all authed" on public.stock_reports for select using (auth.uid() is not null);
 create policy "stock_reports insert authed" on public.stock_reports for insert with check (auth.uid() is not null);
 create policy "stock_reports update own" on public.stock_reports for update using (created_by = auth.uid());
 create policy "stock_reports delete admin" on public.stock_reports for delete using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+);
+
+-- Multi-item reports policies
+drop policy if exists "stock_report_batches select all authed" on public.stock_report_batches;
+drop policy if exists "stock_report_batches insert authed" on public.stock_report_batches;
+drop policy if exists "stock_report_batches delete admin" on public.stock_report_batches;
+create policy "stock_report_batches select all authed" on public.stock_report_batches for select using (auth.uid() is not null);
+create policy "stock_report_batches insert authed" on public.stock_report_batches for insert with check (auth.uid() is not null);
+create policy "stock_report_batches delete admin" on public.stock_report_batches for delete using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+);
+
+drop policy if exists "stock_report_lines select all authed" on public.stock_report_lines;
+drop policy if exists "stock_report_lines insert authed" on public.stock_report_lines;
+drop policy if exists "stock_report_lines delete admin" on public.stock_report_lines;
+create policy "stock_report_lines select all authed" on public.stock_report_lines for select using (auth.uid() is not null);
+create policy "stock_report_lines insert authed" on public.stock_report_lines for insert with check (auth.uid() is not null);
+create policy "stock_report_lines delete admin" on public.stock_report_lines for delete using (
   exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
 );
