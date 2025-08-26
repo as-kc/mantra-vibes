@@ -13,6 +13,7 @@ import AddItemScreen from './screens/AddItemScreen';
 import StockReportScreen from './screens/StockReportScreen';
 import ReportsScreen from './screens/ReportsScreen';
 import AdminScreen from './screens/AdminScreen';
+import ProfileScreen from './screens/ProfileScreen';
 import { useProfileRole } from './hooks/useProfileRole';
 import { ReportProvider } from './contexts/ReportContext';
 
@@ -28,6 +29,7 @@ function AppTabs() {
       <Tabs.Screen name="Reports" component={ReportsScreen} />
       <Tabs.Screen name="Stock" component={StockReportScreen} options={{ title: 'Add Report' }} />
       {role === 'admin' && <Tabs.Screen name="Admin" component={AdminScreen} />}
+      <Tabs.Screen name="Profile" component={ProfileScreen} />
     </Tabs.Navigator>
   );
 }

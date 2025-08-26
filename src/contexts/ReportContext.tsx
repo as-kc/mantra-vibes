@@ -4,17 +4,18 @@ type Line = {
   itemId: string | null;
   start: string;
   end: string;
-  revenue: string;
 };
 
 type ReportContextType = {
   lines: Line[];
   note: string;
+  totalRevenue: string;
   addItemToReport: (itemId: string) => void;
   removeLine: (idx: number) => void;
   setLine: (idx: number, patch: Partial<Line>) => void;
   addLine: () => void;
   setNote: (note: string) => void;
+  setTotalRevenue: (revenue: string) => void;
   clearReport: () => void;
   getCurrentReportItems: (items?: Array<{ id: string; name: string }>) => Array<{ id: string; name: string }>;
   hasItem: (itemId: string) => boolean;
@@ -37,12 +38,13 @@ type ReportProviderProps = {
 export const ReportProvider: React.FC<ReportProviderProps> = ({ children }) => {
   const [lines, setLines] = useState<Line[]>([]);
   const [note, setNoteState] = useState('');
+  const [totalRevenue, setTotalRevenueState] = useState('');
 
   const addItemToReport = (itemId: string) => {
     if (lines.some(l => l.itemId === itemId)) {
       return false; // Item already exists
     }
-    setLines(prev => [...prev, { itemId, start: '0', end: '0', revenue: '' }]);
+    setLines(prev => [...prev, { itemId, start: '0', end: '0' }]);
     return true;
   };
 
@@ -55,16 +57,21 @@ export const ReportProvider: React.FC<ReportProviderProps> = ({ children }) => {
   };
 
   const addLine = () => {
-    setLines(prev => [...prev, { itemId: null, start: '0', end: '0', revenue: '' }]);
+    setLines(prev => [...prev, { itemId: null, start: '0', end: '0' }]);
   };
 
   const setNote = (newNote: string) => {
     setNoteState(newNote);
   };
 
+  const setTotalRevenue = (revenue: string) => {
+    setTotalRevenueState(revenue);
+  };
+
   const clearReport = () => {
     setLines([]);
     setNoteState('');
+    setTotalRevenueState('');
   };
 
   const getCurrentReportItems = (items?: Array<{ id: string; name: string }>) => {
@@ -84,11 +91,13 @@ export const ReportProvider: React.FC<ReportProviderProps> = ({ children }) => {
   const value: ReportContextType = {
     lines,
     note,
+    totalRevenue,
     addItemToReport,
     removeLine,
     setLine,
     addLine,
     setNote,
+    setTotalRevenue,
     clearReport,
     getCurrentReportItems,
     hasItem,

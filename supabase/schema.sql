@@ -73,8 +73,7 @@ create table if not exists public.stock_report_lines (
   item_id uuid not null references public.items(id) on delete cascade,
   start_stock integer not null,
   end_stock integer not null,
-  sold integer not null,
-  revenue numeric(12,2)
+  sold integer not null
 );
 
 -- View for items with tags + is_low flag
@@ -151,7 +150,7 @@ begin
 end $$;
 
 -- RPC: record multi-item stock report
--- p_lines is an array of objects: [{item_id, start_stock, end_stock, revenue}]
+-- p_lines is an array of objects: [{item_id, start_stock, end_stock}]
 create or replace function public.record_stock_report_multi(
   p_note text,
   p_total_revenue numeric,
@@ -166,8 +165,6 @@ declare
   v_start int;
   v_end int;
   v_sold int;
-  v_rev numeric;
-  v_sum_rev numeric := 0;
 begin
   insert into public.stock_report_batches (note, total_revenue, created_by)
   values (p_note, p_total_revenue, auth.uid())
@@ -182,27 +179,15 @@ begin
     v_item_id := (v_line->>'item_id')::uuid;
     v_start := coalesce((v_line->>'start_stock')::int, 0);
     v_end := coalesce((v_line->>'end_stock')::int, 0);
-    v_rev := (v_line->>'revenue')::numeric;
     v_sold := greatest(0, v_start - v_end);
 
     update public.items
     set current_stock = greatest(0, current_stock - v_sold)
     where id = v_item_id;
 
-    insert into public.stock_report_lines (report_id, item_id, start_stock, end_stock, sold, revenue)
-    values (v_report_id, v_item_id, v_start, v_end, v_sold, v_rev);
-
-    if v_rev is not null then
-      v_sum_rev := coalesce(v_sum_rev, 0) + v_rev;
-    end if;
+    insert into public.stock_report_lines (report_id, item_id, start_stock, end_stock, sold)
+    values (v_report_id, v_item_id, v_start, v_end, v_sold);
   end loop;
-
-  -- If total not passed, set to sum of line revenues
-  if p_total_revenue is null then
-    update public.stock_report_batches
-    set total_revenue = v_sum_rev
-    where id = v_report_id;
-  end if;
 
   return v_report_id;
 end $$;

@@ -4,7 +4,7 @@ import { View, ScrollView } from 'react-native';
 import { TextInput, Button, Text, Card, Portal, Dialog, Searchbar, List, IconButton } from 'react-native-paper';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { supabase } from '../lib/supabase';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useReport } from '../contexts/ReportContext';
 
 export default function StockReportScreen({ route }: any) {
@@ -15,14 +15,18 @@ export default function StockReportScreen({ route }: any) {
   const [search, setSearch] = useState('');
   const [clearDialogVisible, setClearDialogVisible] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const {
     lines,
     note,
+    totalRevenue,
     addItemToReport,
     removeLine,
     setLine,
     addLine,
     setNote,
+    setTotalRevenue,
     clearReport,
   } = useReport();
 
@@ -47,10 +51,9 @@ export default function StockReportScreen({ route }: any) {
       (acc, l) => {
         const sold = Math.max(0, parseInt(l.start || '0', 10) - parseInt(l.end || '0', 10));
         acc.sold += sold;
-        acc.revenue += l.revenue ? parseFloat(l.revenue) : 0;
         return acc;
       },
-      { sold: 0, revenue: 0 }
+      { sold: 0 }
     );
   }, [lines]);
 
@@ -61,15 +64,20 @@ export default function StockReportScreen({ route }: any) {
       item_id: l.itemId,
       start_stock: parseInt(l.start || '0', 10),
       end_stock: parseInt(l.end || '0', 10),
-      revenue: l.revenue ? parseFloat(l.revenue) : null,
     }));
     const { error } = await supabase.rpc('record_stock_report_multi', {
       p_note: note || null,
-      p_total_revenue: null,
+      p_total_revenue: totalRevenue ? parseFloat(totalRevenue) : null,
       p_lines: payload,
     } as any);
     if (error) { alert(error.message); return; }
     alert('Saved');
+    
+    // Invalidate queries to trigger re-renders in other tabs
+    queryClient.invalidateQueries({ queryKey: ['reports-multi'] });
+    queryClient.invalidateQueries({ queryKey: ['items'] });
+    queryClient.invalidateQueries({ queryKey: ['items-basic'] });
+    
     clearReport();
   };
 
@@ -134,7 +142,6 @@ export default function StockReportScreen({ route }: any) {
             <TextInput label="Starting stock" value={l.start} onChangeText={(v)=>setLine(idx,{start:v})} keyboardType="number-pad" />
             <TextInput label="Ending stock" value={l.end} onChangeText={(v)=>setLine(idx,{end:v})} keyboardType="number-pad" />
             <Text>Sold (auto): {sold}</Text>
-            <TextInput label="Revenue (optional)" value={l.revenue} onChangeText={(v)=>setLine(idx,{revenue:v})} keyboardType="decimal-pad" />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
               <Button onPress={() => removeLine(idx)}>Remove</Button>
               {idx === lines.length - 1 && <Button onPress={addLine}>Add another item</Button>}
@@ -144,9 +151,15 @@ export default function StockReportScreen({ route }: any) {
       })}
 
       <TextInput label="Batch note (optional)" value={note} onChangeText={setNote} />
+      <TextInput 
+        label="Total revenue (optional)" 
+        value={totalRevenue} 
+        onChangeText={setTotalRevenue} 
+        keyboardType="decimal-pad" 
+      />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
         <Text>Total sold: {totals.sold}</Text>
-        <Text>Total revenue: {totals.revenue.toFixed(2)}</Text>
+        <Text>Total revenue: {totalRevenue ? parseFloat(totalRevenue).toFixed(2) : '0.00'}</Text>
       </View>
 
       <Button mode="contained" onPress={handleSave}>Save Report</Button>

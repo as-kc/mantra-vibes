@@ -14,7 +14,6 @@ type LineRow = {
   start_stock: number;
   end_stock: number;
   sold: number;
-  revenue: number | null;
   note: string | null;
   total_revenue: number | null;
   created_at: string;
@@ -53,9 +52,8 @@ export default function ReportsScreen() {
     const rows = reportsQ.data ?? [];
     return rows.reduce((acc, r) => {
       acc.sold += r.sold;
-      acc.revenue += r.revenue || 0;
       return acc;
-    }, { sold: 0, revenue: 0 });
+    }, { sold: 0 });
   }, [reportsQ.data]);
 
   return (
@@ -67,7 +65,6 @@ export default function ReportsScreen() {
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8 }}>
         <Text>Total sold: {totals.sold}</Text>
-        <Text>Total revenue: {totals.revenue.toFixed(2)}</Text>
       </View>
 
       <FlatList
@@ -75,16 +72,14 @@ export default function ReportsScreen() {
         keyExtractor={(r: any) => r.id}
         renderItem={({ item }: any) => (
           <Card style={{ marginVertical: 6 }}>
-            <Card.Title title={`Report`} subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')} />
+            <Card.Title title={item.note ? item.note : 'Report'} subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')} />
             <Card.Content>
               {item.lines.map((ln: LineRow) => (
                 <View key={ln.line_id} style={{ marginBottom: 6 }}>
                   <Text style={{ fontWeight: '600' }}>{ln.item_name}</Text>
                   <Text>Start: {ln.start_stock}  End: {ln.end_stock}  Sold: {ln.sold}</Text>
-                  {ln.revenue != null && <Text>Revenue: {ln.revenue}</Text>}
                 </View>
               ))}
-              {item.note && <Text>Note: {item.note}</Text>}
               {item.total_revenue != null && <Text>Total revenue (batch): {item.total_revenue}</Text>}
             </Card.Content>
           </Card>

@@ -20,13 +20,7 @@ export default function ItemsScreen({ navigation }: any) {
     lines,
   } = useReport();
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Auth' }],
-    });
-  };
+
 
   const handleAddItemToReport = (itemId: string) => {
     addItemToReport(itemId);
@@ -75,7 +69,6 @@ export default function ItemsScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 12, gap: 8 }}>
-        <Button title="Logout" onPress={handleLogout} />
         <Searchbar placeholder="Search items or SKU" value={query} onChangeText={setQuery} />
         
         {/* Current Report Status */}
