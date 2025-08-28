@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { Text } from 'react-native-paper';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { ItemModal } from '../components/ItemModal';

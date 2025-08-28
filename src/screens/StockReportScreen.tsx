@@ -9,7 +9,6 @@ import { useReport } from '../contexts/ReportContext';
 
 export default function StockReportScreen({ route }: any) {
   const itemIdParam = route?.params?.itemId || null;
-  const [reportName, setReportName] = useState('Current Report');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [pickerLineIndex, setPickerLineIndex] = useState<number | null>(null);
   const [search, setSearch] = useState('');
@@ -115,7 +114,7 @@ export default function StockReportScreen({ route }: any) {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text variant="titleLarge">{reportName}</Text>
+        <Text variant="titleLarge">Current Report</Text>
         <IconButton icon="delete" onPress={() => setClearDialogVisible(true)} />
       </View>
 
