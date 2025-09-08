@@ -83,7 +83,7 @@ export const EditReportDialog: React.FC<EditReportDialogProps> = ({
     }
   };
 
-  if (!visible) return null;
+  if (!visible) {return null;}
 
   return (
     <Portal>

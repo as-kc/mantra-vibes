@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { Card, Text, TextInput, IconButton, Portal } from 'react-native-paper';
+import { Card, Text, TextInput, IconButton } from 'react-native-paper';
 import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
@@ -29,7 +29,7 @@ export default function ReportsScreen() {
     queryKey: ['reports-multi', from, to],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('reports_between_multi', { p_from: from, p_to: to });
-      if (error) throw error;
+      if (error) {throw error;}
       return (data ?? []) as LineRow[];
     }
   });
@@ -94,7 +94,7 @@ export default function ReportsScreen() {
                   <Text>Start: {ln.start_stock}  End: {ln.end_stock}  Sold: {ln.sold}</Text>
                 </View>
               ))}
-              {item.total_revenue != null && <Text>Total revenue (batch): {item.total_revenue}</Text>}
+              {item.total_revenue !== null && <Text>Total revenue (batch): {item.total_revenue}</Text>}
             </Card.Content>
           </Card>
         )}

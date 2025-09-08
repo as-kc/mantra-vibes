@@ -16,10 +16,10 @@ export default function AuthScreen() {
     try {
       if (mode === 'signin') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {throw error;}
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
+        if (error) {throw error;}
       }
     } catch (e: any) {
       setError(e.message);

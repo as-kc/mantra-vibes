@@ -10,7 +10,7 @@ export default function AdminScreen() {
     queryKey: ['items'],
     queryFn: async () => {
       const { data, error } = await supabase.from('items_view').select('*').order('current_stock');
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
   });

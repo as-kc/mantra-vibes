@@ -59,7 +59,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   }, [visible, item, mode]);
 
   const handleSave = async () => {
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {return;}
 
     setIsLoading(true);
     try {
@@ -93,7 +93,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   };
 
   const handleDelete = async () => {
-    if (!onDelete || !item) return;
+    if (!onDelete || !item) {return;}
 
     setIsLoading(true);
     try {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, ScrollView } from 'react-native';
 import { 
   TextInput, 
@@ -9,7 +9,7 @@ import {
   Dialog, 
   Searchbar, 
   List, 
-  IconButton 
+  
 } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
@@ -55,7 +55,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({
     queryKey: ['items-basic'],
     queryFn: async () => {
       const { data, error } = await supabase.from('items').select('id,name').order('name');
-      if (error) throw error;
+      if (error) {throw error;}
       return data as any[];
     },
   });
@@ -97,7 +97,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({
   const filteredItems = useMemo(() => {
     const list = itemsQ.data ?? [];
     const q = (search || '').toLowerCase();
-    if (!q) return list;
+    if (!q) {return list;}
     return list.filter((it: any) => (it.name || '').toLowerCase().includes(q));
   }, [itemsQ.data, search]);
 
@@ -109,7 +109,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({
   };
 
   const getItemName = (line: ReportLine) => {
-    if (line.itemName) return line.itemName;
+    if (line.itemName) {return line.itemName;}
     if (line.itemId) {
       const item = itemsQ.data?.find((i: any) => i.id === line.itemId);
       return item?.name ?? line.itemId;
@@ -198,7 +198,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({
                     key={it.id}
                     title={it.name}
                     onPress={() => {
-                      if (pickerLineIndex != null) {
+                      if (pickerLineIndex !== null) {
                         setLine(pickerLineIndex, { itemId: it.id, itemName: it.name });
                       }
                       closePicker();

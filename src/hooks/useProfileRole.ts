@@ -8,13 +8,13 @@ export function useProfileRole() {
     let mounted = true;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { if (mounted) setRole('unknown'); return; }
+      if (!user) { if (mounted) {setRole('unknown');} return; }
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
-      if (!error && data && mounted) setRole((data.role as any) ?? 'user');
+      if (!error && data && mounted) {setRole((data.role as any) ?? 'user');}
     })();
     return () => { mounted = false; };
   }, []);

@@ -20,7 +20,8 @@ expo run:ios
 expo start --web
 
 # Code quality
-npm run lint
+npm run lint          # Check for linting issues
+npm run lint:fix      # Auto-fix linting issues where possible
 ```
 
 ## Architecture

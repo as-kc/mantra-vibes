@@ -32,7 +32,7 @@ export default function ItemsScreen({ navigation }: any) {
 
   const handleRemoveItemFromReport = (itemId: string) => {
     const idx = lines.findIndex(l => l.itemId === itemId);
-    if (idx !== -1) removeLine(idx);
+    if (idx !== -1) {removeLine(idx);}
   };
 
   const handleClearReport = () => {
@@ -67,7 +67,7 @@ export default function ItemsScreen({ navigation }: any) {
           .select()
           .single();
 
-        if (itemError) throw itemError;
+        if (itemError) {throw itemError;}
 
         // Add tags
         for (const tagName of tags) {
@@ -77,7 +77,7 @@ export default function ItemsScreen({ navigation }: any) {
             .select()
             .single();
 
-          if (tagError) throw tagError;
+          if (tagError) {throw tagError;}
 
           await supabase
             .from('item_tags')
@@ -96,7 +96,7 @@ export default function ItemsScreen({ navigation }: any) {
           })
           .eq('id', editingItem.id);
 
-        if (itemError) throw itemError;
+        if (itemError) {throw itemError;}
 
         // Handle tags
         const currentTags = editingItem.tags || [];
@@ -111,7 +111,7 @@ export default function ItemsScreen({ navigation }: any) {
             .select()
             .single();
 
-          if (tagError) throw tagError;
+          if (tagError) {throw tagError;}
 
           await supabase
             .from('item_tags')
@@ -167,7 +167,7 @@ export default function ItemsScreen({ navigation }: any) {
     queryKey: ['items'],
     queryFn: async () => {
       const { data, error } = await supabase.from('items_view').select('*').order('name');
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
   });
@@ -176,7 +176,7 @@ export default function ItemsScreen({ navigation }: any) {
     queryKey: ['tags'],
     queryFn: async () => {
       const { data, error } = await supabase.from('tags').select('*').order('name');
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
   });
