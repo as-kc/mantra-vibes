@@ -45,7 +45,7 @@ export default function StockReportScreen({ route }: any) {
   const setReportLines = (newLines: ReportLine[]) => {
     // Clear current lines
     clearReport();
-    
+
     // Add new lines one by one using the context functions
     newLines.forEach((line, idx) => {
       if (idx === 0) {
@@ -59,8 +59,14 @@ export default function StockReportScreen({ route }: any) {
   };
 
   const handleSave = async () => {
-    if (!lines.length) { alert('Add at least one item'); return; }
-    if (lines.some(l => !l.itemId)) { alert('Each line needs an item'); return; }
+    if (!lines.length) {
+      alert('Add at least one item');
+      return;
+    }
+    if (lines.some(l => !l.itemId)) {
+      alert('Each line needs an item');
+      return;
+    }
     const payload = lines.map(l => ({
       item_id: l.itemId,
       start_stock: parseInt(l.start || '0', 10),
@@ -71,14 +77,17 @@ export default function StockReportScreen({ route }: any) {
       p_total_revenue: totalRevenue ? parseFloat(totalRevenue) : null,
       p_lines: payload,
     } as any);
-    if (error) { alert(error.message); return; }
+    if (error) {
+      alert(error.message);
+      return;
+    }
     alert('Saved');
-    
+
     // Invalidate queries to trigger re-renders in other tabs
     queryClient.invalidateQueries({ queryKey: ['reports-multi'] });
     queryClient.invalidateQueries({ queryKey: ['items'] });
     queryClient.invalidateQueries({ queryKey: ['items-basic'] });
-    
+
     clearReport();
   };
 
@@ -90,8 +99,8 @@ export default function StockReportScreen({ route }: any) {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text variant="titleLarge">Current Report</Text>
-        <IconButton icon="delete" onPress={() => setClearDialogVisible(true)} />
+        <Text variant='titleLarge'>Current Report</Text>
+        <IconButton icon='delete' onPress={() => setClearDialogVisible(true)} />
       </View>
 
       <ReportForm
@@ -102,7 +111,7 @@ export default function StockReportScreen({ route }: any) {
         totalRevenue={totalRevenue}
         setTotalRevenue={setTotalRevenue}
         onSave={handleSave}
-        saveButtonText="Save Report"
+        saveButtonText='Save Report'
         showAddFirstItem={true}
       />
 
@@ -111,10 +120,10 @@ export default function StockReportScreen({ route }: any) {
         visible={clearDialogVisible}
         onDismiss={() => setClearDialogVisible(false)}
         onConfirm={handleClearReport}
-        title="Clear Current Report?"
-        message="This will remove all items from the current report. Are you sure?"
-        confirmText="Clear Report"
-        cancelText="Cancel"
+        title='Clear Current Report?'
+        message='This will remove all items from the current report. Are you sure?'
+        confirmText='Clear Report'
+        cancelText='Cancel'
       />
     </ScrollView>
   );

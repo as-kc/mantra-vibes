@@ -18,18 +18,18 @@ export default function ProfileScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge">Profile</Text>
-      
+      <Text variant='titleLarge'>Profile</Text>
+
       <Card style={{ marginTop: 16, padding: 16 }}>
-        <Text variant="titleMedium">Account Information</Text>
+        <Text variant='titleMedium'>Account Information</Text>
         <Text style={{ marginTop: 8 }}>Role: {role}</Text>
       </Card>
 
       <View style={{ marginTop: 24 }}>
-        <Button 
-          mode="outlined" 
+        <Button
+          mode='outlined'
           onPress={handleLogout}
-          textColor="red"
+          textColor='red'
           style={{ borderColor: 'red' }}
         >
           Logout

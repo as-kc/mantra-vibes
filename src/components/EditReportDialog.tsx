@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView } from 'react-native';
-import { 
-  Portal, 
-  Dialog, 
-  Button, 
-} from 'react-native-paper';
+import { Portal, Dialog, Button } from 'react-native-paper';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { ReportForm, ReportLine } from './ReportForm';
@@ -43,13 +39,13 @@ export const EditReportDialog: React.FC<EditReportDialogProps> = ({
   }, [report, visible]);
 
   const handleSave = async () => {
-    if (!lines.length) { 
-      alert('Add at least one item'); 
-      return; 
+    if (!lines.length) {
+      alert('Add at least one item');
+      return;
     }
-    if (lines.some(l => !l.itemId)) { 
-      alert('Each line needs an item'); 
-      return; 
+    if (lines.some(l => !l.itemId)) {
+      alert('Each line needs an item');
+      return;
     }
 
     try {
@@ -66,24 +62,26 @@ export const EditReportDialog: React.FC<EditReportDialogProps> = ({
         p_lines: payload,
       } as any);
 
-      if (error) { 
-        alert(error.message); 
-        return; 
+      if (error) {
+        alert(error.message);
+        return;
       }
 
       alert('Report updated successfully');
-      
+
       queryClient.invalidateQueries({ queryKey: ['reports-multi'] });
       queryClient.invalidateQueries({ queryKey: ['items'] });
       queryClient.invalidateQueries({ queryKey: ['items-basic'] });
-      
+
       onDismiss();
     } catch (err: any) {
       alert('Error updating report: ' + err.message);
     }
   };
 
-  if (!visible) {return null;}
+  if (!visible) {
+    return null;
+  }
 
   return (
     <Portal>
@@ -99,7 +97,7 @@ export const EditReportDialog: React.FC<EditReportDialogProps> = ({
               totalRevenue={totalRevenue}
               setTotalRevenue={setTotalRevenue}
               onSave={handleSave}
-              saveButtonText="Save Changes"
+              saveButtonText='Save Changes'
               showAddFirstItem={false}
             />
           </ScrollView>

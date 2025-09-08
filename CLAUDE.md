@@ -22,11 +22,14 @@ expo start --web
 # Code quality
 npm run lint          # Check for linting issues
 npm run lint:fix      # Auto-fix linting issues where possible
+npm run format        # Format code with Prettier
+npm run format:check  # Check if code is formatted correctly
 ```
 
 ## Architecture
 
 ### Tech Stack
+
 - **Frontend**: React Native 0.79.5 with Expo 53.0.20
 - **Navigation**: React Navigation v6 (Stack + Bottom Tabs)
 - **UI Library**: React Native Paper 5.12.5
@@ -36,6 +39,7 @@ npm run lint:fix      # Auto-fix linting issues where possible
 - **Storage**: Expo SecureStore for auth tokens
 
 ### Project Structure
+
 ```
 src/
 ├── App.tsx              # Main app component with navigation setup
@@ -64,12 +68,14 @@ supabase/
 ### Key Architecture Patterns
 
 #### Authentication & Authorization
+
 - Uses Supabase Auth with email/password
 - Role-based access control (user/admin) stored in `profiles` table
 - Admin-specific screens conditionally rendered based on role
 - Secure token storage with Expo SecureStore
 
 #### Database Design
+
 - **Items**: Core inventory items with stock tracking and low-stock thresholds
 - **Tags**: Flexible tagging system with many-to-many relationship to items
 - **Stock Reports**: Both single-item and multi-item batch reporting
@@ -78,11 +84,13 @@ supabase/
 - Row Level Security (RLS) policies for data access control
 
 #### State Management
+
 - React Query for server state management and caching
 - ReportContext for multi-item stock report state
 - Local React state for UI interactions
 
 #### Real-time Features
+
 - Supabase real-time subscriptions for live data updates
 - Low-stock alerts for admin users
 - In-app notification system ready for push notifications
@@ -101,32 +109,38 @@ supabase/
 ## Key Features Implementation
 
 ### Inventory Management
+
 - Items have current stock, low-stock thresholds, and flexible tagging
 - Stock automatically decrements based on sales reports
 - Search and filter capabilities by tags
 
 ### Reporting System
+
 - Single-item reports: individual stock transactions
 - Multi-item batch reports: bulk stock updates with total revenue
 - Date-range reporting with sales analytics
 - Editable reports (long-press to edit/delete)
 
 ### Admin Features
+
 - Total stock overview
 - Low-stock alerts and notifications
 - Sales reporting with date ranges
 - User management capabilities
 
 ### Role-Based Navigation
+
 - Bottom tab navigation with conditional admin tab
 - Stack navigation for modal screens (Add Item)
 - Authentication flow with persistent sessions
 
 ## Database Functions (RPC)
+
 - `add_item_with_tags()`: Creates items with CSV tag input
 - `record_stock_report()`: Atomic single-item stock reporting
 - `record_stock_report_multi()`: Batch multi-item reporting
 - `reports_between()`: Date-range report queries
 
 ## Notification System
+
 Push notifications are outlined but not fully implemented. See `src/lib/notifications.ts` and `supabase/notes.md` for implementation guidance using Expo push tokens and Supabase Edge Functions.

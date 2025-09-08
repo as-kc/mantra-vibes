@@ -1,4 +1,3 @@
-
 import * as Notifications from 'expo-notifications';
 import { supabase } from './supabase';
 
@@ -14,7 +13,9 @@ export async function registerForPushAsync() {
   }
   const token = (await Notifications.getExpoPushTokenAsync()).data;
   // Save on profile
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (user) {
     await supabase.from('profiles').update({ expo_push_token: token }).eq('id', user.id);
   }

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -46,11 +45,11 @@ function AppTabs() {
         },
       })}
     >
-      <Tabs.Screen name="Items" component={ItemsScreen} />
-      <Tabs.Screen name="Reports" component={ReportsScreen} />
-      <Tabs.Screen name="Stock" component={StockReportScreen} options={{ title: 'Add Report' }} />
-      {role === 'admin' && <Tabs.Screen name="Admin" component={AdminScreen} />}
-      <Tabs.Screen name="Profile" component={ProfileScreen} />
+      <Tabs.Screen name='Items' component={ItemsScreen} />
+      <Tabs.Screen name='Reports' component={ReportsScreen} />
+      <Tabs.Screen name='Stock' component={StockReportScreen} options={{ title: 'Add Report' }} />
+      {role === 'admin' && <Tabs.Screen name='Admin' component={AdminScreen} />}
+      <Tabs.Screen name='Profile' component={ProfileScreen} />
     </Tabs.Navigator>
   );
 }
@@ -71,11 +70,15 @@ export default function App() {
           <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
               {session ? (
-                <Stack.Screen name="Main" component={AppTabs} />
+                <Stack.Screen name='Main' component={AppTabs} />
               ) : (
-                <Stack.Screen name="Auth" component={AuthScreen} />
+                <Stack.Screen name='Auth' component={AuthScreen} />
               )}
-              <Stack.Screen name="AddItem" component={AddItemScreen} options={{ headerShown: true, title: 'Add Item' }} />
+              <Stack.Screen
+                name='AddItem'
+                component={AddItemScreen}
+                options={{ headerShown: true, title: 'Add Item' }}
+              />
             </Stack.Navigator>
           </NavigationContainer>
         </ReportProvider>

@@ -1,16 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, ScrollView } from 'react-native';
-import { 
-  TextInput, 
-  Button, 
-  Text, 
-  Card, 
-  Portal,
-  Dialog, 
-  Searchbar, 
-  List, 
-  
-} from 'react-native-paper';
+import { TextInput, Button, Text, Card, Portal, Dialog, Searchbar, List } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
@@ -55,7 +45,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({
     queryKey: ['items-basic'],
     queryFn: async () => {
       const { data, error } = await supabase.from('items').select('id,name').order('name');
-      if (error) {throw error;}
+      if (error) {
+        throw error;
+      }
       return data as any[];
     },
   });
@@ -97,7 +89,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({
   const filteredItems = useMemo(() => {
     const list = itemsQ.data ?? [];
     const q = (search || '').toLowerCase();
-    if (!q) {return list;}
+    if (!q) {
+      return list;
+    }
     return list.filter((it: any) => (it.name || '').toLowerCase().includes(q));
   }, [itemsQ.data, search]);
 
@@ -109,7 +103,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({
   };
 
   const getItemName = (line: ReportLine) => {
-    if (line.itemName) {return line.itemName;}
+    if (line.itemName) {
+      return line.itemName;
+    }
     if (line.itemId) {
       const item = itemsQ.data?.find((i: any) => i.id === line.itemId);
       return item?.name ?? line.itemId;
@@ -133,23 +129,23 @@ export const ReportForm: React.FC<ReportFormProps> = ({
         const itemName = getItemName(l);
         return (
           <Card key={idx} style={{ padding: 12, marginVertical: 4 }}>
-            <Text variant="titleMedium">Line {idx + 1}</Text>
+            <Text variant='titleMedium'>Line {idx + 1}</Text>
             <Text>Item</Text>
             <View style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 8 }}>
               <Text>{itemName}</Text>
               <Button onPress={() => openPicker(idx)}>Select item</Button>
             </View>
-            <TextInput 
-              label="Starting stock" 
-              value={l.start} 
-              onChangeText={(v) => setLine(idx, { start: v })} 
-              keyboardType="number-pad" 
+            <TextInput
+              label='Starting stock'
+              value={l.start}
+              onChangeText={v => setLine(idx, { start: v })}
+              keyboardType='number-pad'
             />
-            <TextInput 
-              label="Ending stock" 
-              value={l.end} 
-              onChangeText={(v) => setLine(idx, { end: v })} 
-              keyboardType="number-pad" 
+            <TextInput
+              label='Ending stock'
+              value={l.end}
+              onChangeText={v => setLine(idx, { end: v })}
+              keyboardType='number-pad'
             />
             <Text>Sold (auto): {sold}</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
@@ -160,35 +156,37 @@ export const ReportForm: React.FC<ReportFormProps> = ({
         );
       })}
 
-      <TextInput 
-        label="Note (optional)" 
-        value={note} 
-        onChangeText={setNote} 
+      <TextInput
+        label='Note (optional)'
+        value={note}
+        onChangeText={setNote}
         style={{ marginVertical: 8 }}
       />
-      <TextInput 
-        label="Total revenue (optional)" 
-        value={totalRevenue} 
-        onChangeText={setTotalRevenue} 
-        keyboardType="decimal-pad" 
+      <TextInput
+        label='Total revenue (optional)'
+        value={totalRevenue}
+        onChangeText={setTotalRevenue}
+        keyboardType='decimal-pad'
         style={{ marginVertical: 8 }}
       />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
         <Text>Total sold: {totals.sold}</Text>
       </View>
 
-      <Button mode="contained" onPress={onSave}>{saveButtonText}</Button>
+      <Button mode='contained' onPress={onSave}>
+        {saveButtonText}
+      </Button>
 
       {/* Item Picker Dialog */}
       <Portal>
         <Dialog visible={pickerVisible} onDismiss={closePicker}>
           <Dialog.Title>Select item</Dialog.Title>
           <Dialog.Content>
-            <Searchbar 
-              placeholder="Search items" 
-              value={search} 
-              onChangeText={setSearch} 
-              style={{ marginBottom: 8 }} 
+            <Searchbar
+              placeholder='Search items'
+              value={search}
+              onChangeText={setSearch}
+              style={{ marginBottom: 8 }}
             />
             {itemsQ.isLoading && <Text>Loading…</Text>}
             {!itemsQ.isLoading && (

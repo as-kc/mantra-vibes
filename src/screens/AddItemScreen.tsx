@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,7 +22,9 @@ export default function AddItemScreen({ navigation }: any) {
         .select()
         .single();
 
-      if (itemError) {throw itemError;}
+      if (itemError) {
+        throw itemError;
+      }
 
       // Add tags
       for (const tagName of tags) {
@@ -33,11 +34,11 @@ export default function AddItemScreen({ navigation }: any) {
           .select()
           .single();
 
-        if (tagError) {throw tagError;}
+        if (tagError) {
+          throw tagError;
+        }
 
-        await supabase
-          .from('item_tags')
-          .insert({ item_id: itemData.id, tag_id: tagData.id });
+        await supabase.from('item_tags').insert({ item_id: itemData.id, tag_id: tagData.id });
       }
 
       // Invalidate queries to refresh the data
@@ -47,7 +48,6 @@ export default function AddItemScreen({ navigation }: any) {
 
       // Navigate back
       navigation.goBack();
-
     } catch (error: any) {
       alert('Error creating item: ' + error.message);
       throw error;
@@ -60,12 +60,7 @@ export default function AddItemScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1 }}>
-      <ItemModal
-        visible={modalVisible}
-        onDismiss={handleDismiss}
-        onSave={handleSave}
-        mode="add"
-      />
+      <ItemModal visible={modalVisible} onDismiss={handleDismiss} onSave={handleSave} mode='add' />
     </View>
   );
 }

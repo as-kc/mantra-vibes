@@ -17,14 +17,8 @@ export default function ItemsScreen({ navigation }: any) {
 
   const queryClient = useQueryClient();
 
-  const {
-    addItemToReport,
-    clearReport,
-    getCurrentReportItems,
-    hasItem,
-    removeLine,
-    lines,
-  } = useReport();
+  const { addItemToReport, clearReport, getCurrentReportItems, hasItem, removeLine, lines } =
+    useReport();
 
   const handleAddItemToReport = (itemId: string) => {
     addItemToReport(itemId);
@@ -32,7 +26,9 @@ export default function ItemsScreen({ navigation }: any) {
 
   const handleRemoveItemFromReport = (itemId: string) => {
     const idx = lines.findIndex(l => l.itemId === itemId);
-    if (idx !== -1) {removeLine(idx);}
+    if (idx !== -1) {
+      removeLine(idx);
+    }
   };
 
   const handleClearReport = () => {
@@ -67,7 +63,9 @@ export default function ItemsScreen({ navigation }: any) {
           .select()
           .single();
 
-        if (itemError) {throw itemError;}
+        if (itemError) {
+          throw itemError;
+        }
 
         // Add tags
         for (const tagName of tags) {
@@ -77,13 +75,12 @@ export default function ItemsScreen({ navigation }: any) {
             .select()
             .single();
 
-          if (tagError) {throw tagError;}
+          if (tagError) {
+            throw tagError;
+          }
 
-          await supabase
-            .from('item_tags')
-            .insert({ item_id: itemData.id, tag_id: tagData.id });
+          await supabase.from('item_tags').insert({ item_id: itemData.id, tag_id: tagData.id });
         }
-
       } else {
         // Update existing item
         const { error: itemError } = await supabase
@@ -96,7 +93,9 @@ export default function ItemsScreen({ navigation }: any) {
           })
           .eq('id', editingItem.id);
 
-        if (itemError) {throw itemError;}
+        if (itemError) {
+          throw itemError;
+        }
 
         // Handle tags
         const currentTags = editingItem.tags || [];
@@ -111,11 +110,11 @@ export default function ItemsScreen({ navigation }: any) {
             .select()
             .single();
 
-          if (tagError) {throw tagError;}
+          if (tagError) {
+            throw tagError;
+          }
 
-          await supabase
-            .from('item_tags')
-            .insert({ item_id: editingItem.id, tag_id: tagData.id });
+          await supabase.from('item_tags').insert({ item_id: editingItem.id, tag_id: tagData.id });
         }
 
         // Remove tags
@@ -140,7 +139,6 @@ export default function ItemsScreen({ navigation }: any) {
       queryClient.invalidateQueries({ queryKey: ['items'] });
       queryClient.invalidateQueries({ queryKey: ['items-basic'] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
-
     } catch (error: any) {
       alert(`Error ${modalMode === 'add' ? 'creating' : 'updating'} item: ` + error.message);
       throw error;
@@ -148,10 +146,7 @@ export default function ItemsScreen({ navigation }: any) {
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    const { error } = await supabase
-      .from('items')
-      .delete()
-      .eq('id', itemId);
+    const { error } = await supabase.from('items').delete().eq('id', itemId);
 
     if (error) {
       alert('Error deleting item: ' + error.message);
@@ -167,7 +162,9 @@ export default function ItemsScreen({ navigation }: any) {
     queryKey: ['items'],
     queryFn: async () => {
       const { data, error } = await supabase.from('items_view').select('*').order('name');
-      if (error) {throw error;}
+      if (error) {
+        throw error;
+      }
       return data;
     },
   });
@@ -176,7 +173,9 @@ export default function ItemsScreen({ navigation }: any) {
     queryKey: ['tags'],
     queryFn: async () => {
       const { data, error } = await supabase.from('tags').select('*').order('name');
-      if (error) {throw error;}
+      if (error) {
+        throw error;
+      }
       return data;
     },
   });
@@ -185,7 +184,8 @@ export default function ItemsScreen({ navigation }: any) {
     const list = itemsQ.data ?? [];
     const q = query.trim().toLowerCase();
     return list.filter((i: any) => {
-      const matchesText = !q || i.name.toLowerCase().includes(q) || (i.sku||'').toLowerCase().includes(q);
+      const matchesText =
+        !q || i.name.toLowerCase().includes(q) || (i.sku || '').toLowerCase().includes(q);
       const matchesTag = !activeTag || (i.tags || []).includes(activeTag);
       return matchesText && matchesTag;
     });
@@ -196,17 +196,25 @@ export default function ItemsScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 12, gap: 8 }}>
-        <Searchbar placeholder="Search items or SKU" value={query} onChangeText={setQuery} />
-        
+        <Searchbar placeholder='Search items or SKU' value={query} onChangeText={setQuery} />
+
         {/* Current Report Status */}
         {currentReportItems.length > 0 && (
           <Card style={{ backgroundColor: '#e3f2fd' }}>
             <Card.Content>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text variant="titleMedium">Current Report ({currentReportItems.length} items)</Text>
-                <IconButton icon="delete" onPress={() => setClearDialogVisible(true)} />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Text variant='titleMedium'>
+                  Current Report ({currentReportItems.length} items)
+                </Text>
+                <IconButton icon='delete' onPress={() => setClearDialogVisible(true)} />
               </View>
-              <Text variant="bodySmall">
+              <Text variant='bodySmall'>
                 {currentReportItems.map((item: any) => item.name).join(', ')}
               </Text>
             </Card.Content>
@@ -215,7 +223,11 @@ export default function ItemsScreen({ navigation }: any) {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {(tagsQ.data ?? []).map((t: any) => (
-            <Chip key={t.id} selected={activeTag === t.name} onPress={() => setActiveTag(activeTag === t.name ? null : t.name)}>
+            <Chip
+              key={t.id}
+              selected={activeTag === t.name}
+              onPress={() => setActiveTag(activeTag === t.name ? null : t.name)}
+            >
               {t.name}
             </Chip>
           ))}
@@ -234,38 +246,38 @@ export default function ItemsScreen({ navigation }: any) {
                 <Text>Current Stock: {item.current_stock}</Text>
                 {item.is_low && <Text style={{ color: 'tomato' }}>Low stock!</Text>}
                 {item.tags?.length ? <Text>Tags: {item.tags.join(', ')} </Text> : null}
-                {isInReport && <Text style={{ color: 'green', fontWeight: 'bold' }}>✓ In current report</Text>}
+                {isInReport && (
+                  <Text style={{ color: 'green', fontWeight: 'bold' }}>✓ In current report</Text>
+                )}
               </Card.Content>
               <Card.Actions>
                 {isInReport ? (
-                  <IconButton icon="minus" onPress={() => handleRemoveItemFromReport(item.id)} />
+                  <IconButton icon='minus' onPress={() => handleRemoveItemFromReport(item.id)} />
                 ) : (
-                  <IconButton 
-                    icon="plus" 
-                    onPress={() => handleAddItemToReport(item.id)}
-                  />
+                  <IconButton icon='plus' onPress={() => handleAddItemToReport(item.id)} />
                 )}
-                <IconButton 
-                  icon="pencil" 
-                  onPress={() => handleEditItem(item)}
-                />
+                <IconButton icon='pencil' onPress={() => handleEditItem(item)} />
               </Card.Actions>
             </Card>
           );
         }}
       />
 
-      <FAB style={{ position: 'absolute', right: 16, bottom: 16 }} icon="plus" onPress={handleAddItem} />
+      <FAB
+        style={{ position: 'absolute', right: 16, bottom: 16 }}
+        icon='plus'
+        onPress={handleAddItem}
+      />
 
       {/* Clear Report Confirmation Dialog */}
       <ConfirmationDialog
         visible={clearDialogVisible}
         onDismiss={() => setClearDialogVisible(false)}
         onConfirm={handleClearReport}
-        title="Clear Current Report?"
-        message="This will remove all items from the current report. Are you sure?"
-        confirmText="Clear Report"
-        cancelText="Cancel"
+        title='Clear Current Report?'
+        message='This will remove all items from the current report. Are you sure?'
+        confirmText='Clear Report'
+        cancelText='Cancel'
       />
 
       {/* Reusable Item Modal */}

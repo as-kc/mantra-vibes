@@ -59,7 +59,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   }, [visible, item, mode]);
 
   const handleSave = async () => {
-    if (!formData.name.trim()) {return;}
+    if (!formData.name.trim()) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -93,7 +95,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   };
 
   const handleDelete = async () => {
-    if (!onDelete || !item) {return;}
+    if (!onDelete || !item) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -115,53 +119,51 @@ export const ItemModal: React.FC<ItemModalProps> = ({
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Content>
           <TextInput
-            label="Name *"
+            label='Name *'
             value={formData.name}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+            onChangeText={text => setFormData(prev => ({ ...prev, name: text }))}
             style={{ marginBottom: 8 }}
           />
           <TextInput
-            label="SKU (optional)"
+            label='SKU (optional)'
             value={formData.sku}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, sku: text }))}
+            onChangeText={text => setFormData(prev => ({ ...prev, sku: text }))}
             style={{ marginBottom: 8 }}
           />
           <TextInput
-            label="Current Stock"
+            label='Current Stock'
             value={formData.current_stock}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, current_stock: text }))}
-            keyboardType="number-pad"
+            onChangeText={text => setFormData(prev => ({ ...prev, current_stock: text }))}
+            keyboardType='number-pad'
             style={{ marginBottom: 8 }}
           />
           <TextInput
-            label="Low Stock Threshold"
+            label='Low Stock Threshold'
             value={formData.low_stock_threshold}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, low_stock_threshold: text }))}
-            keyboardType="number-pad"
+            onChangeText={text => setFormData(prev => ({ ...prev, low_stock_threshold: text }))}
+            keyboardType='number-pad'
             style={{ marginBottom: 16 }}
           />
-          
+
           {/* Tags Section */}
-          <Text variant="titleMedium" style={{ marginBottom: 8 }}>Tags</Text>
+          <Text variant='titleMedium' style={{ marginBottom: 8 }}>
+            Tags
+          </Text>
           <View style={{ flexDirection: 'row', marginBottom: 8 }}>
             <TextInput
-              label="Add new tag"
+              label='Add new tag'
               value={newTag}
               onChangeText={setNewTag}
               style={{ flex: 1, marginRight: 8 }}
               onSubmitEditing={addTag}
             />
-            <Button title="Add" onPress={addTag} />
+            <Button title='Add' onPress={addTag} />
           </View>
-          
+
           {/* Current Tags */}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {tags.map((tag, index) => (
-              <Chip
-                key={index}
-                onClose={() => removeTag(tag)}
-                closeIcon="close"
-              >
+              <Chip key={index} onClose={() => removeTag(tag)} closeIcon='close'>
                 {tag}
               </Chip>
             ))}
@@ -170,22 +172,20 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             )}
           </View>
         </Dialog.Content>
-        
+
         <Dialog.Actions>
-          <Button onPress={handleClose} disabled={isLoading}>Cancel</Button>
+          <Button onPress={handleClose} disabled={isLoading}>
+            Cancel
+          </Button>
           <Button onPress={handleSave} disabled={isLoading || !formData.name.trim()}>
             {saveButtonText}
           </Button>
         </Dialog.Actions>
-        
+
         {/* Delete button for edit mode */}
         {mode === 'edit' && onDelete && (
           <Dialog.Actions style={{ borderTopWidth: 1, borderTopColor: '#e0e0e0', paddingTop: 8 }}>
-            <Button 
-              title="Delete Item" 
-              onPress={handleDelete}
-              disabled={isLoading}
-            />
+            <Button title='Delete Item' onPress={handleDelete} disabled={isLoading} />
           </Dialog.Actions>
         )}
       </Dialog>

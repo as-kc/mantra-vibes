@@ -17,7 +17,9 @@ type ReportContextType = {
   setNote: (note: string) => void;
   setTotalRevenue: (revenue: string) => void;
   clearReport: () => void;
-  getCurrentReportItems: (items?: Array<{ id: string; name: string }>) => Array<{ id: string; name: string }>;
+  getCurrentReportItems: (
+    items?: Array<{ id: string; name: string }>
+  ) => Array<{ id: string; name: string }>;
   hasItem: (itemId: string) => boolean;
 };
 
@@ -75,13 +77,15 @@ export const ReportProvider: React.FC<ReportProviderProps> = ({ children }) => {
   };
 
   const getCurrentReportItems = (items?: Array<{ id: string; name: string }>) => {
-    return lines.filter(l => l.itemId).map(l => {
-      if (items) {
-        const item = items.find(i => i.id === l.itemId);
-        return item ? { id: l.itemId!, name: item.name } : { id: l.itemId!, name: l.itemId! };
-      }
-      return { id: l.itemId!, name: l.itemId! };
-    });
+    return lines
+      .filter(l => l.itemId)
+      .map(l => {
+        if (items) {
+          const item = items.find(i => i.id === l.itemId);
+          return item ? { id: l.itemId!, name: item.name } : { id: l.itemId!, name: l.itemId! };
+        }
+        return { id: l.itemId!, name: l.itemId! };
+      });
   };
 
   const hasItem = (itemId: string) => {
@@ -103,9 +107,5 @@ export const ReportProvider: React.FC<ReportProviderProps> = ({ children }) => {
     hasItem,
   };
 
-  return (
-    <ReportContext.Provider value={value}>
-      {children}
-    </ReportContext.Provider>
-  );
+  return <ReportContext.Provider value={value}>{children}</ReportContext.Provider>;
 };

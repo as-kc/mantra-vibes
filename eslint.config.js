@@ -4,6 +4,8 @@ import tsparser from '@typescript-eslint/parser';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactNative from 'eslint-plugin-react-native';
+import prettier from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
 
 export default [
   js.configs.recommended,
@@ -46,9 +48,10 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'react': react,
+      react: react,
       'react-hooks': reactHooks,
       'react-native': reactNative,
+      prettier: prettier,
     },
     rules: {
       // TypeScript rules
@@ -57,44 +60,39 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-non-null-assertion': 'warn',
-      
+
       // React rules
       'react/react-in-jsx-scope': 'off', // Not needed with React 17+
       'react/prop-types': 'off', // Using TypeScript for prop validation
       'react/jsx-uses-react': 'off',
       'react/jsx-uses-vars': 'error',
       'react/no-unescaped-entities': 'warn',
-      
+
       // React Hooks rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      
+
       // React Native specific rules
       'react-native/no-unused-styles': 'warn',
       'react-native/split-platform-components': 'off',
       'react-native/no-inline-styles': 'off', // Allow inline styles for React Native
       'react-native/no-color-literals': 'off', // Allow color literals for React Native
       'react-native/no-raw-text': 'off',
-      
+
+      // Prettier integration
+      'prettier/prettier': 'warn',
+
       // General JavaScript/TypeScript rules
       'no-console': 'off', // Allow console for React Native development
       'no-unused-vars': 'off', // Using TypeScript version instead
       'prefer-const': 'warn',
       'no-var': 'error',
-      'eqeqeq': ['error', 'always'],
-      'curly': ['warn', 'all'],
-      'semi': ['warn', 'always'],
-      'quotes': ['off'], // Let Prettier handle this
-      'comma-dangle': ['off'], // Let Prettier handle this
-      'object-curly-spacing': ['warn', 'always'],
-      'array-bracket-spacing': ['warn', 'never'],
-      'indent': ['warn', 2, { SwitchCase: 1 }],
-      'linebreak-style': 'off', // Disable for cross-platform development
-      'max-len': ['warn', { code: 120, ignoreUrls: true, ignoreStrings: true }],
-      
+      eqeqeq: ['error', 'always'],
+      curly: ['warn', 'all'],
+
       // Import/Export rules
       'no-duplicate-imports': 'error',
-      
+
       // Disable rules that conflict with Prettier or are too strict for development
       'no-trailing-spaces': 'off',
       'eol-last': 'off',
