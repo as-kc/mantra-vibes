@@ -1,11 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, IconButton } from 'react-native-paper';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { ReportForm, ReportLine } from '../components/ReportForm';
 import { supabase } from '../lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { useReport } from '../contexts/ReportContext';
+import { layout, containers, spaces } from '../styles';
 
 export default function AddReportScreen({ route }: any) {
   const itemIdParam = route?.params?.itemId || null;

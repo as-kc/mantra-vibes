@@ -1,10 +1,13 @@
 import React from 'react';
-import { View } from 'react-native';
-import { Button, Text, Card } from 'react-native-paper';
+import { View, StyleSheet } from 'react-native';
+import { Button, Text, Card, List, RadioButton } from 'react-native-paper';
 import { useProfileRole } from '../hooks/useProfileRole';
+import { useTheme } from '../contexts/ThemeContext';
+import { containers, spaces, layout, textAlign } from '../styles';
 
 export default function ProfileScreen({ navigation }: any) {
   const role = useProfileRole();
+  const { themeMode, setThemeMode, isDark } = useTheme();
 
   const handleLogout = async () => {
     // Import supabase here to avoid circular dependencies
@@ -17,24 +20,63 @@ export default function ProfileScreen({ navigation }: any) {
   };
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Text variant='titleLarge'>Profile</Text>
+    <View style={[layout.flex1, containers.screen]}>
+      <Text variant='titleLarge' style={textAlign.center}>
+        Profile
+      </Text>
 
-      <Card style={{ marginTop: 16, padding: 16 }}>
-        <Text variant='titleMedium'>Account Information</Text>
-        <Text style={{ marginTop: 8 }}>Role: {role}</Text>
+      <Card style={[containers.card, spaces.marginTopLG]}>
+        <Card.Content style={containers.cardContent}>
+          <Text variant='titleMedium' style={spaces.marginBottomSM}>
+            Account Information
+          </Text>
+          <Text>Role: {role}</Text>
+        </Card.Content>
       </Card>
 
-      <View style={{ marginTop: 24 }}>
-        <Button
-          mode='outlined'
-          onPress={handleLogout}
-          textColor='red'
-          style={{ borderColor: 'red' }}
-        >
+      <Card style={containers.card}>
+        <Card.Content style={containers.cardContent}>
+          <Text variant='titleMedium' style={spaces.marginBottomSM}>
+            Theme Settings
+          </Text>
+          <RadioButton.Group onValueChange={setThemeMode} value={themeMode}>
+            <List.Item
+              title='Light Theme'
+              left={() => <RadioButton value='light' />}
+              onPress={() => setThemeMode('light')}
+            />
+            <List.Item
+              title='Dark Theme'
+              left={() => <RadioButton value='dark' />}
+              onPress={() => setThemeMode('dark')}
+            />
+            <List.Item
+              title='System Default'
+              left={() => <RadioButton value='system' />}
+              onPress={() => setThemeMode('system')}
+            />
+          </RadioButton.Group>
+          <Text variant='bodySmall' style={[spaces.marginTopSM, styles.themeStatus]}>
+            Current mode: {themeMode} {isDark ? '(Dark)' : '(Light)'}
+          </Text>
+        </Card.Content>
+      </Card>
+
+      <View style={spaces.marginTopXXL}>
+        <Button mode='outlined' onPress={handleLogout} style={styles.logoutButton}>
           Logout
         </Button>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  logoutButton: {
+    borderColor: '#b00020',
+  },
+  themeStatus: {
+    fontStyle: 'italic',
+    opacity: 0.7,
+  },
+});

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { supabase } from '../lib/supabase';
+import { layout, containers, spaces, textAlign, forms } from '../styles';
 
 export default function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -33,25 +34,53 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
-      <Text variant='headlineMedium' style={{ textAlign: 'center', marginBottom: 8 }}>
+    <View style={[layout.flex1, layout.centerVertical, styles.container]}>
+      <Text variant='headlineMedium' style={[textAlign.center, spaces.marginBottomSM]}>
         Inventory Login
       </Text>
-      <TextInput
-        label='Email'
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize='none'
-        keyboardType='email-address'
-      />
-      <TextInput label='Password' value={password} onChangeText={setPassword} secureTextEntry />
-      {error && <Text style={{ color: 'red' }}>{error}</Text>}
-      <Button mode='contained' onPress={handleAuth} loading={loading}>
-        {mode === 'signin' ? 'Sign In' : 'Sign Up'}
-      </Button>
-      <Button onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
-        {mode === 'signin' ? 'Need an account? Sign Up' : 'Have an account? Sign In'}
-      </Button>
+      
+      <View style={forms.inputGroup}>
+        <TextInput
+          label='Email'
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize='none'
+          keyboardType='email-address'
+          style={forms.input}
+        />
+        <TextInput 
+          label='Password' 
+          value={password} 
+          onChangeText={setPassword} 
+          secureTextEntry 
+          style={forms.input}
+        />
+        
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        
+        <Button 
+          mode='contained' 
+          onPress={handleAuth} 
+          loading={loading}
+          style={spaces.marginTopSM}
+        >
+          {mode === 'signin' ? 'Sign In' : 'Sign Up'}
+        </Button>
+        
+        <Button onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
+          {mode === 'signin' ? 'Need an account? Sign Up' : 'Have an account? Sign In'}
+        </Button>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 24,
+    gap: 12,
+  },
+  errorText: {
+    color: '#b00020',
+  },
+});

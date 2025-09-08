@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, View, Button } from 'react-native';
+import { FlatList, View, StyleSheet } from 'react-native';
 import { Text, Searchbar, FAB, Chip, Card, IconButton } from 'react-native-paper';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useReport } from '../contexts/ReportContext';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { ItemModal } from '../components/ItemModal';
+import { layout, containers, spaces, chips } from '../styles';
 
 export default function ItemsScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
@@ -194,21 +195,15 @@ export default function ItemsScreen({ navigation }: any) {
   const currentReportItems = getCurrentReportItems(itemsQ.data);
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{ padding: 12, gap: 8 }}>
+    <View style={layout.flex1}>
+      <View style={styles.searchSection}>
         <Searchbar placeholder='Search items or SKU' value={query} onChangeText={setQuery} />
 
         {/* Current Report Status */}
         {currentReportItems.length > 0 && (
-          <Card style={{ backgroundColor: '#e3f2fd' }}>
+          <Card style={styles.reportCard}>
             <Card.Content>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
+              <View style={[layout.flexRow, layout.spaceBetween, layout.centerHorizontal]}>
                 <Text variant='titleMedium'>
                   Current Report ({currentReportItems.length} items)
                 </Text>
@@ -221,7 +216,7 @@ export default function ItemsScreen({ navigation }: any) {
           </Card>
         )}
 
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <View style={chips.container}>
           {(tagsQ.data ?? []).map((t: any) => (
             <Chip
               key={t.id}
@@ -240,14 +235,14 @@ export default function ItemsScreen({ navigation }: any) {
         renderItem={({ item }: any) => {
           const isInReport = hasItem(item.id);
           return (
-            <Card style={{ margin: 12 }}>
+            <Card style={containers.card}>
               <Card.Title title={item.name} />
               <Card.Content>
                 <Text>Current Stock: {item.current_stock}</Text>
-                {item.is_low && <Text style={{ color: 'tomato' }}>Low stock!</Text>}
+                {item.is_low && <Text style={styles.lowStockText}>Low stock!</Text>}
                 {item.tags?.length ? <Text>Tags: {item.tags.join(', ')} </Text> : null}
                 {isInReport && (
-                  <Text style={{ color: 'green', fontWeight: 'bold' }}>✓ In current report</Text>
+                  <Text style={styles.inReportText}>✓ In current report</Text>
                 )}
               </Card.Content>
               <Card.Actions>
@@ -264,7 +259,7 @@ export default function ItemsScreen({ navigation }: any) {
       />
 
       <FAB
-        style={{ position: 'absolute', right: 16, bottom: 16 }}
+        style={containers.fabPosition}
         icon='plus'
         onPress={handleAddItem}
       />
@@ -292,3 +287,20 @@ export default function ItemsScreen({ navigation }: any) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  searchSection: {
+    padding: 12,
+    gap: 8,
+  },
+  reportCard: {
+    backgroundColor: '#e3f2fd',
+  },
+  lowStockText: {
+    color: 'tomato',
+  },
+  inReportText: {
+    color: 'green',
+    fontWeight: 'bold',
+  },
+});

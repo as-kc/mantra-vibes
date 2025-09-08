@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Portal, Dialog, TextInput, Button, Text, Chip } from 'react-native-paper';
+import { layout, spaces, forms, chips } from '../styles';
 
 type ItemFormData = {
   name: string;
@@ -122,53 +123,53 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             label='Name *'
             value={formData.name}
             onChangeText={text => setFormData(prev => ({ ...prev, name: text }))}
-            style={{ marginBottom: 8 }}
+            style={forms.input}
           />
           <TextInput
             label='SKU (optional)'
             value={formData.sku}
             onChangeText={text => setFormData(prev => ({ ...prev, sku: text }))}
-            style={{ marginBottom: 8 }}
+            style={forms.input}
           />
           <TextInput
             label='Current Stock'
             value={formData.current_stock}
             onChangeText={text => setFormData(prev => ({ ...prev, current_stock: text }))}
             keyboardType='number-pad'
-            style={{ marginBottom: 8 }}
+            style={forms.input}
           />
           <TextInput
             label='Low Stock Threshold'
             value={formData.low_stock_threshold}
             onChangeText={text => setFormData(prev => ({ ...prev, low_stock_threshold: text }))}
             keyboardType='number-pad'
-            style={{ marginBottom: 16 }}
+            style={spaces.marginBottomLG}
           />
 
           {/* Tags Section */}
-          <Text variant='titleMedium' style={{ marginBottom: 8 }}>
+          <Text variant='titleMedium' style={spaces.marginBottomSM}>
             Tags
           </Text>
-          <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+          <View style={[layout.flexRow, spaces.marginBottomSM]}>
             <TextInput
               label='Add new tag'
               value={newTag}
               onChangeText={setNewTag}
-              style={{ flex: 1, marginRight: 8 }}
+              style={styles.tagInput}
               onSubmitEditing={addTag}
             />
-            <Button title='Add' onPress={addTag} />
+            <Button onPress={addTag}>Add</Button>
           </View>
 
           {/* Current Tags */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <View style={chips.container}>
             {tags.map((tag, index) => (
               <Chip key={index} onClose={() => removeTag(tag)} closeIcon='close'>
                 {tag}
               </Chip>
             ))}
             {tags.length === 0 && (
-              <Text style={{ fontStyle: 'italic', color: '#666' }}>No tags</Text>
+              <Text style={styles.noTagsText}>No tags</Text>
             )}
           </View>
         </Dialog.Content>
@@ -184,11 +185,29 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
         {/* Delete button for edit mode */}
         {mode === 'edit' && onDelete && (
-          <Dialog.Actions style={{ borderTopWidth: 1, borderTopColor: '#e0e0e0', paddingTop: 8 }}>
-            <Button title='Delete Item' onPress={handleDelete} disabled={isLoading} />
+          <Dialog.Actions style={styles.deleteButtonContainer}>
+            <Button onPress={handleDelete} disabled={isLoading}>
+              Delete Item
+            </Button>
           </Dialog.Actions>
         )}
       </Dialog>
     </Portal>
   );
 };
+
+const styles = StyleSheet.create({
+  tagInput: {
+    flex: 1,
+    marginRight: 8,
+  },
+  noTagsText: {
+    fontStyle: 'italic',
+    color: '#666',
+  },
+  deleteButtonContainer: {
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 8,
+  },
+});
