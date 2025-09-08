@@ -7,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { containers, spaces, layout, textAlign } from '../styles';
 
 export default function ProfileScreen({ navigation }: any) {
-  const role = useProfileRole();
+  const { role, email } = useProfileRole();
   const { themeMode, setThemeMode, isDark } = useTheme();
 
   const handleLogout = async () => {
@@ -32,6 +32,7 @@ export default function ProfileScreen({ navigation }: any) {
           <Text variant='titleMedium' style={spaces.marginBottomSM}>
             Account Information
           </Text>
+          <Text style={spaces.marginBottomXS}>User: {email}</Text>
           <Text>Role: {role}</Text>
         </Card.Content>
       </Card>

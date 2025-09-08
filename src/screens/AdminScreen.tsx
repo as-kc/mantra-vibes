@@ -3,6 +3,7 @@ import { FlatList, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Card, Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AdminScreen() {
   const itemsQ = useQuery({
@@ -17,7 +18,7 @@ export default function AdminScreen() {
   });
 
   return (
-    <View style={{ flex: 1, padding: 12 }}>
+    <SafeAreaView style={{ flex: 1, padding: 12 }}>
       <Text variant='titleLarge'>Admin</Text>
       <Text>Low-stock items:</Text>
       <FlatList
@@ -34,6 +35,6 @@ export default function AdminScreen() {
           </Card>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }

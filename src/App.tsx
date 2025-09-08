@@ -24,7 +24,7 @@ const Tabs = createBottomTabNavigator();
 const queryClient = new QueryClient();
 
 function AppTabs() {
-  const role = useProfileRole();
+  const { role } = useProfileRole();
   const { navigationTheme } = useTheme();
   
   return (
