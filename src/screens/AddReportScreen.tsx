@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { useReport } from '../contexts/ReportContext';
 
-export default function StockReportScreen({ route }: any) {
+export default function AddReportScreen({ route }: any) {
   const itemIdParam = route?.params?.itemId || null;
   const [clearDialogVisible, setClearDialogVisible] = useState(false);
 
@@ -99,7 +99,7 @@ export default function StockReportScreen({ route }: any) {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text variant='titleLarge'>Current Report</Text>
+        <Text variant='titleLarge'>Add Report</Text>
         <IconButton icon='delete' onPress={() => setClearDialogVisible(true)} />
       </View>
 

@@ -54,7 +54,7 @@ src/
     ├── AuthScreen.tsx
     ├── ItemsScreen.tsx
     ├── AddItemScreen.tsx
-    ├── StockReportScreen.tsx
+    ├── AddReportScreen.tsx
     ├── ReportsScreen.tsx
     ├── AdminScreen.tsx
     └── ProfileScreen.tsx

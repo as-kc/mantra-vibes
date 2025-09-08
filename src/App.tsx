@@ -9,7 +9,7 @@ import { supabase } from './lib/supabase';
 import AuthScreen from './screens/AuthScreen';
 import ItemsScreen from './screens/ItemsScreen';
 import AddItemScreen from './screens/AddItemScreen';
-import StockReportScreen from './screens/StockReportScreen';
+import AddReportScreen from './screens/AddReportScreen';
 import ReportsScreen from './screens/ReportsScreen';
 import AdminScreen from './screens/AdminScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -47,7 +47,7 @@ function AppTabs() {
     >
       <Tabs.Screen name='Items' component={ItemsScreen} />
       <Tabs.Screen name='Reports' component={ReportsScreen} />
-      <Tabs.Screen name='Stock' component={StockReportScreen} options={{ title: 'Add Report' }} />
+      <Tabs.Screen name='Stock' component={AddReportScreen} options={{ title: 'Add Report' }} />
       {role === 'admin' && <Tabs.Screen name='Admin' component={AdminScreen} />}
       <Tabs.Screen name='Profile' component={ProfileScreen} />
     </Tabs.Navigator>
