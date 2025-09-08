@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
-import { Card, Text, TextInput, IconButton } from 'react-native-paper';
+import { FlatList, View, Platform } from 'react-native';
+import { Card, Text, IconButton, Button, Chip } from 'react-native-paper';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
@@ -20,9 +21,15 @@ type LineRow = {
 };
 
 export default function ReportsScreen() {
-  const [from, setFrom] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
-  const [to, setTo] = useState(dayjs().endOf('month').format('YYYY-MM-DD'));
+  const [fromDate, setFromDate] = useState(dayjs().startOf('month').toDate());
+  const [toDate, setToDate] = useState(dayjs().endOf('month').toDate());
   const [editingReport, setEditingReport] = useState<any>(null);
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+
+  // Convert dates to string format for API calls
+  const from = dayjs(fromDate).format('YYYY-MM-DD');
+  const to = dayjs(toDate).format('YYYY-MM-DD');
 
   const reportsQ = useQuery({
     queryKey: ['reports-multi', from, to],
@@ -80,18 +87,88 @@ export default function ReportsScreen() {
     setEditingReport(null);
   };
 
+  const handleDateChange = (event: any, selectedDate: Date | undefined, isFromDate: boolean) => {
+    if (selectedDate) {
+      if (isFromDate) {
+        setFromDate(selectedDate);
+        setShowFromPicker(false);
+      } else {
+        setToDate(selectedDate);
+        setShowToPicker(false);
+      }
+    } else {
+      setShowFromPicker(false);
+      setShowToPicker(false);
+    }
+  };
+
+  const setDateRange = (range: 'week' | 'month' | 'year') => {
+    const now = dayjs();
+    switch (range) {
+      case 'week':
+        setFromDate(now.subtract(7, 'days').startOf('day').toDate());
+        setToDate(now.endOf('day').toDate());
+        break;
+      case 'month':
+        setFromDate(now.subtract(1, 'month').startOf('day').toDate());
+        setToDate(now.endOf('day').toDate());
+        break;
+      case 'year':
+        setFromDate(now.subtract(1, 'year').startOf('day').toDate());
+        setToDate(now.endOf('day').toDate());
+        break;
+    }
+  };
+
   return (
     <View style={{ flex: 1, padding: 12 }}>
       <Text variant='titleLarge'>Reports</Text>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <TextInput
-          label='From (YYYY-MM-DD)'
-          style={{ flex: 1 }}
-          value={from}
-          onChangeText={setFrom}
-        />
-        <TextInput label='To (YYYY-MM-DD)' style={{ flex: 1 }} value={to} onChangeText={setTo} />
+
+      {/* Preset Date Range Buttons */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 8 }}>
+        <Chip 
+          onPress={() => setDateRange('week')} 
+          style={{ flex: 1, marginHorizontal: 4 }}
+          textStyle={{ textAlign: 'center' }}
+        >
+          Past Week
+        </Chip>
+        <Chip 
+          onPress={() => setDateRange('month')} 
+          style={{ flex: 1, marginHorizontal: 4 }}
+          textStyle={{ textAlign: 'center' }}
+        >
+          Past Month
+        </Chip>
+        <Chip 
+          onPress={() => setDateRange('year')} 
+          style={{ flex: 1, marginHorizontal: 4 }}
+          textStyle={{ textAlign: 'center' }}
+        >
+          Past Year
+        </Chip>
       </View>
+
+      {/* Date Picker Buttons */}
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+        <Button
+          mode='outlined'
+          onPress={() => setShowFromPicker(true)}
+          style={{ flex: 1 }}
+          contentStyle={{ paddingVertical: 8 }}
+        >
+          From: {dayjs(fromDate).format('MMM DD, YYYY')}
+        </Button>
+        <Button
+          mode='outlined'
+          onPress={() => setShowToPicker(true)}
+          style={{ flex: 1 }}
+          contentStyle={{ paddingVertical: 8 }}
+        >
+          To: {dayjs(toDate).format('MMM DD, YYYY')}
+        </Button>
+      </View>
+
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8 }}>
         <Text>Total sold: {totals.sold}</Text>
       </View>
@@ -130,6 +207,25 @@ export default function ReportsScreen() {
         onDismiss={handleCloseEdit}
         report={editingReport}
       />
+
+      {/* Date Pickers */}
+      {showFromPicker && (
+        <DateTimePicker
+          value={fromDate}
+          mode='date'
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, selectedDate) => handleDateChange(event, selectedDate, true)}
+        />
+      )}
+
+      {showToPicker && (
+        <DateTimePicker
+          value={toDate}
+          mode='date'
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, selectedDate) => handleDateChange(event, selectedDate, false)}
+        />
+      )}
     </View>
   );
 }
