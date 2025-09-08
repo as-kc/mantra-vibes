@@ -1,10 +1,11 @@
 
 import React, { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { Card, Text, TextInput } from 'react-native-paper';
+import { Card, Text, TextInput, IconButton, Portal } from 'react-native-paper';
 import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { EditReportDialog } from '../components/EditReportDialog';
 
 type LineRow = {
   report_id: string;
@@ -22,6 +23,7 @@ type LineRow = {
 export default function ReportsScreen() {
   const [from, setFrom] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
   const [to, setTo] = useState(dayjs().endOf('month').format('YYYY-MM-DD'));
+  const [editingReport, setEditingReport] = useState<any>(null);
 
   const reportsQ = useQuery({
     queryKey: ['reports-multi', from, to],
@@ -56,6 +58,14 @@ export default function ReportsScreen() {
     }, { sold: 0 });
   }, [reportsQ.data]);
 
+  const handleEditReport = (report: any) => {
+    setEditingReport(report);
+  };
+
+  const handleCloseEdit = () => {
+    setEditingReport(null);
+  };
+
   return (
     <View style={{ flex: 1, padding: 12 }}>
       <Text variant="titleLarge">Reports</Text>
@@ -72,7 +82,11 @@ export default function ReportsScreen() {
         keyExtractor={(r: any) => r.id}
         renderItem={({ item }: any) => (
           <Card style={{ marginVertical: 6 }}>
-            <Card.Title title={item.note ? item.note : 'Report'} subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')} />
+            <Card.Title 
+              title={item.note ? item.note : 'Report'} 
+              subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')}
+              right={(props) => <IconButton {...props} icon="pencil" onPress={() => handleEditReport(item)} />}
+            />
             <Card.Content>
               {item.lines.map((ln: LineRow) => (
                 <View key={ln.line_id} style={{ marginBottom: 6 }}>
@@ -84,6 +98,12 @@ export default function ReportsScreen() {
             </Card.Content>
           </Card>
         )}
+      />
+      
+      <EditReportDialog
+        visible={!!editingReport}
+        onDismiss={handleCloseEdit}
+        report={editingReport}
       />
     </View>
   );

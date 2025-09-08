@@ -251,6 +251,72 @@ as $$
   order by b.created_at desc, i.name asc;
 $$;
 
+-- RPC: update multi-item stock report
+-- p_lines is an array of objects: [{item_id, start_stock, end_stock}]
+create or replace function public.update_stock_report_batch(
+  p_report_id uuid,
+  p_note text,
+  p_total_revenue numeric,
+  p_lines jsonb
+) returns uuid
+language plpgsql security definer
+as $$
+declare
+  v_line jsonb;
+  v_item_id uuid;
+  v_start int;
+  v_end int;
+  v_sold int;
+  v_old_line record;
+  v_old_sold int;
+begin
+  -- First, check if user owns this report
+  if not exists (select 1 from public.stock_report_batches where id = p_report_id and created_by = auth.uid()) then
+    raise exception 'You can only edit your own reports';
+  end if;
+
+  -- Revert previous stock changes for this report
+  for v_old_line in 
+    select item_id, sold from public.stock_report_lines 
+    where report_id = p_report_id
+  loop
+    -- Add back the previously subtracted stock
+    update public.items
+    set current_stock = current_stock + v_old_line.sold
+    where id = v_old_line.item_id;
+  end loop;
+
+  -- Update the report header
+  update public.stock_report_batches
+  set note = p_note, total_revenue = p_total_revenue
+  where id = p_report_id;
+
+  -- Delete all existing lines for this report
+  delete from public.stock_report_lines where report_id = p_report_id;
+
+  -- Insert new lines and update stock
+  if p_lines is not null and jsonb_array_length(p_lines) > 0 then
+    for v_line in select * from jsonb_array_elements(p_lines)
+    loop
+      v_item_id := (v_line->>'item_id')::uuid;
+      v_start := coalesce((v_line->>'start_stock')::int, 0);
+      v_end := coalesce((v_line->>'end_stock')::int, 0);
+      v_sold := greatest(0, v_start - v_end);
+
+      -- Subtract the new sold amount from current stock
+      update public.items
+      set current_stock = greatest(0, current_stock - v_sold)
+      where id = v_item_id;
+
+      -- Insert the new line
+      insert into public.stock_report_lines (report_id, item_id, start_stock, end_stock, sold)
+      values (p_report_id, v_item_id, v_start, v_end, v_sold);
+    end loop;
+  end if;
+
+  return p_report_id;
+end $$;
+
 -- RLS
 alter table public.profiles enable row level security;
 alter table public.items enable row level security;
@@ -316,18 +382,24 @@ create policy "stock_reports delete admin" on public.stock_reports for delete us
 -- Multi-item reports policies
 drop policy if exists "stock_report_batches select all authed" on public.stock_report_batches;
 drop policy if exists "stock_report_batches insert authed" on public.stock_report_batches;
+drop policy if exists "stock_report_batches update own" on public.stock_report_batches;
 drop policy if exists "stock_report_batches delete admin" on public.stock_report_batches;
 create policy "stock_report_batches select all authed" on public.stock_report_batches for select using (auth.uid() is not null);
 create policy "stock_report_batches insert authed" on public.stock_report_batches for insert with check (auth.uid() is not null);
+create policy "stock_report_batches update own" on public.stock_report_batches for update using (created_by = auth.uid());
 create policy "stock_report_batches delete admin" on public.stock_report_batches for delete using (
   exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
 );
 
 drop policy if exists "stock_report_lines select all authed" on public.stock_report_lines;
 drop policy if exists "stock_report_lines insert authed" on public.stock_report_lines;
+drop policy if exists "stock_report_lines update own" on public.stock_report_lines;
 drop policy if exists "stock_report_lines delete admin" on public.stock_report_lines;
 create policy "stock_report_lines select all authed" on public.stock_report_lines for select using (auth.uid() is not null);
 create policy "stock_report_lines insert authed" on public.stock_report_lines for insert with check (auth.uid() is not null);
+create policy "stock_report_lines update own" on public.stock_report_lines for update using (
+  exists (select 1 from public.stock_report_batches b where b.id = report_id and b.created_by = auth.uid())
+);
 create policy "stock_report_lines delete admin" on public.stock_report_lines for delete using (
   exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
 );
