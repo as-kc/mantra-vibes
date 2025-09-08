@@ -106,9 +106,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={contextValue}>
-      <PaperProvider theme={paperTheme}>
-        {children}
-      </PaperProvider>
+      {children}
     </ThemeContext.Provider>
   );
 }

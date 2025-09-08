@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Session } from '@supabase/supabase-js';
+import { PaperProvider } from 'react-native-paper';
 import { supabase } from './lib/supabase';
 import AuthScreen from './screens/AuthScreen';
 import ItemsScreen from './screens/ItemsScreen';
@@ -58,7 +59,7 @@ function AppTabs() {
 
 function AppContent() {
   const [session, setSession] = useState<Session | null>(null);
-  const { navigationTheme } = useTheme();
+  const { navigationTheme, paperTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
@@ -68,22 +69,24 @@ function AppContent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ReportProvider>
-        <NavigationContainer theme={navigationTheme}>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {session ? (
-              <Stack.Screen name='Main' component={AppTabs} />
-            ) : (
-              <Stack.Screen name='Auth' component={AuthScreen} />
-            )}
-            <Stack.Screen
-              name='AddItem'
-              component={AddItemScreen}
-              options={{ headerShown: true, title: 'Add Item' }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </ReportProvider>
+      <PaperProvider theme={paperTheme}>
+        <ReportProvider>
+          <NavigationContainer theme={navigationTheme}>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              {session ? (
+                <Stack.Screen name='Main' component={AppTabs} />
+              ) : (
+                <Stack.Screen name='Auth' component={AuthScreen} />
+              )}
+              <Stack.Screen
+                name='AddItem'
+                component={AddItemScreen}
+                options={{ headerShown: true, title: 'Add Item' }}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ReportProvider>
+      </PaperProvider>
     </QueryClientProvider>
   );
 }
