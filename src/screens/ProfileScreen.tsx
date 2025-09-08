@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Button, Text, Card, List, RadioButton } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProfileRole } from '../hooks/useProfileRole';
 import { useTheme } from '../contexts/ThemeContext';
 import { containers, spaces, layout, textAlign } from '../styles';
@@ -20,10 +21,11 @@ export default function ProfileScreen({ navigation }: any) {
   };
 
   return (
-    <View style={[layout.flex1, containers.screen]}>
-      <Text variant='titleLarge' style={textAlign.center}>
-        Profile
-      </Text>
+    <SafeAreaView style={containers.safeAreaScreen}>
+      <View style={containers.screen}>
+        <Text variant='titleLarge' style={textAlign.center}>
+          Profile
+        </Text>
 
       <Card style={[containers.card, spaces.marginTopLG]}>
         <Card.Content style={containers.cardContent}>
@@ -67,7 +69,8 @@ export default function ProfileScreen({ navigation }: any) {
           Logout
         </Button>
       </View>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 

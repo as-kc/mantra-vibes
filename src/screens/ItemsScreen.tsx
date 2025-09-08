@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
 import { Text, Searchbar, FAB, Chip, Card, IconButton } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useReport } from '../contexts/ReportContext';
@@ -195,7 +196,7 @@ export default function ItemsScreen({ navigation }: any) {
   const currentReportItems = getCurrentReportItems(itemsQ.data);
 
   return (
-    <View style={layout.flex1}>
+    <SafeAreaView style={containers.safeAreaScreen}>
       <View style={styles.searchSection}>
         <Searchbar placeholder='Search items or SKU' value={query} onChangeText={setQuery} />
 
@@ -284,7 +285,7 @@ export default function ItemsScreen({ navigation }: any) {
         item={editingItem}
         mode={modalMode}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

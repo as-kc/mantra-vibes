@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, View, Platform } from 'react-native';
+import { FlatList, View, Platform, StyleSheet } from 'react-native';
 import { Card, Text, IconButton, Button, Chip } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { EditReportDialog } from '../components/EditReportDialog';
+import { containers, layout, spaces, chips } from '../styles';
 
 type LineRow = {
   report_id: string;
@@ -121,8 +123,9 @@ export default function ReportsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, padding: 12 }}>
-      <Text variant='titleLarge'>Reports</Text>
+    <SafeAreaView style={containers.safeAreaScreen}>
+      <View style={containers.screen}>
+        <Text variant='titleLarge'>Reports</Text>
 
       {/* Preset Date Range Buttons */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 8 }}>
@@ -226,6 +229,7 @@ export default function ReportsScreen() {
           onChange={(event, selectedDate) => handleDateChange(event, selectedDate, false)}
         />
       )}
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }

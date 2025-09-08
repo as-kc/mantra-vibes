@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
 import { layout, containers, spaces, textAlign, forms } from '../styles';
 
@@ -34,7 +35,8 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={[layout.flex1, layout.centerVertical, styles.container]}>
+    <SafeAreaView style={containers.safeAreaScreen}>
+      <View style={[layout.flex1, layout.centerVertical, styles.container]}>
       <Text variant='headlineMedium' style={[textAlign.center, spaces.marginBottomSM]}>
         Inventory Login
       </Text>
@@ -71,7 +73,8 @@ export default function AuthScreen() {
           {mode === 'signin' ? 'Need an account? Sign Up' : 'Have an account? Sign In'}
         </Button>
       </View>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 

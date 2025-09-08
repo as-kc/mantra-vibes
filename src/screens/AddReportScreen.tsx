@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, IconButton } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { ReportForm, ReportLine } from '../components/ReportForm';
 import { supabase } from '../lib/supabase';
@@ -98,7 +99,8 @@ export default function AddReportScreen({ route }: any) {
   };
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
+    <SafeAreaView style={containers.safeAreaScreen}>
+      <ScrollView style={layout.flex1} contentContainerStyle={styles.container}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Text variant='titleLarge'>Add Report</Text>
         <IconButton icon='delete' onPress={() => setClearDialogVisible(true)} />
@@ -126,6 +128,14 @@ export default function AddReportScreen({ route }: any) {
         confirmText='Clear Report'
         cancelText='Cancel'
       />
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    gap: 12,
+  },
+});

@@ -105,6 +105,9 @@ export const containers = StyleSheet.create({
   screenWithoutPadding: {
     flex: 1,
   },
+  safeAreaScreen: {
+    flex: 1,
+  },
   section: {
     padding: spacing.md,
     gap: spacing.sm,
