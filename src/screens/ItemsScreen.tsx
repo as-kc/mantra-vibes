@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useReport } from '../contexts/ReportContext';
+import { useProfileRole } from '../hooks/useProfileRole';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { ItemModal } from '../components/ItemModal';
 import { layout, containers, spaces, chips } from '../styles';
@@ -18,6 +19,7 @@ export default function ItemsScreen({ navigation }: any) {
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
 
   const queryClient = useQueryClient();
+  const { role } = useProfileRole();
 
   const { addItemToReport, clearReport, getCurrentReportItems, hasItem, removeLine, lines } =
     useReport();
@@ -252,7 +254,9 @@ export default function ItemsScreen({ navigation }: any) {
                 ) : (
                   <IconButton icon='plus' onPress={() => handleAddItemToReport(item.id)} />
                 )}
-                <IconButton icon='pencil' onPress={() => handleEditItem(item)} />
+                {role === 'admin' && (
+                  <IconButton icon='pencil' onPress={() => handleEditItem(item)} />
+                )}
               </Card.Actions>
             </Card>
           );
