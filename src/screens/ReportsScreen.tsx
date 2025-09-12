@@ -128,26 +128,14 @@ export default function ReportsScreen() {
         <Text variant='titleLarge'>Reports</Text>
 
         {/* Preset Date Range Buttons */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 8 }}>
-          <Chip
-            onPress={() => setDateRange('week')}
-            style={{ flex: 1, marginHorizontal: 4 }}
-            textStyle={{ textAlign: 'center' }}
-          >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginVertical: 8 }}>
+          <Chip onPress={() => setDateRange('week')} textStyle={{ textAlign: 'center' }}>
             Past Week
           </Chip>
-          <Chip
-            onPress={() => setDateRange('month')}
-            style={{ flex: 1, marginHorizontal: 4 }}
-            textStyle={{ textAlign: 'center' }}
-          >
+          <Chip onPress={() => setDateRange('month')} textStyle={{ textAlign: 'center' }}>
             Past Month
           </Chip>
-          <Chip
-            onPress={() => setDateRange('year')}
-            style={{ flex: 1, marginHorizontal: 4 }}
-            textStyle={{ textAlign: 'center' }}
-          >
+          <Chip onPress={() => setDateRange('year')} textStyle={{ textAlign: 'center' }}>
             Past Year
           </Chip>
         </View>
