@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useReport } from '../contexts/ReportContext';
 import { useProfileRole } from '../hooks/useProfileRole';
+import { useTheme } from '../contexts/ThemeContext';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { ItemModal } from '../components/ItemModal';
 import { layout, containers, spaces, chips } from '../styles';
@@ -20,9 +21,27 @@ export default function ItemsScreen({ navigation }: any) {
 
   const queryClient = useQueryClient();
   const { role } = useProfileRole();
+  const { paperTheme } = useTheme();
 
   const { addItemToReport, clearReport, getCurrentReportItems, hasItem, removeLine, lines } =
     useReport();
+
+  const styles = StyleSheet.create({
+    searchSection: {
+      padding: 12,
+      gap: 8,
+    },
+    reportCard: {
+      backgroundColor: paperTheme.colors.secondaryContainer,
+    },
+    lowStockText: {
+      color: paperTheme.colors.error,
+    },
+    inReportText: {
+      color: paperTheme.colors.primary,
+      fontWeight: 'bold',
+    },
+  });
 
   const handleAddItemToReport = (itemId: string) => {
     addItemToReport(itemId);
@@ -286,20 +305,3 @@ export default function ItemsScreen({ navigation }: any) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  searchSection: {
-    padding: 12,
-    gap: 8,
-  },
-  reportCard: {
-    backgroundColor: '#e3f2fd',
-  },
-  lowStockText: {
-    color: 'tomato',
-  },
-  inReportText: {
-    color: 'green',
-    fontWeight: 'bold',
-  },
-});

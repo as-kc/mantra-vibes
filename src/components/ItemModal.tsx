@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Portal, Dialog, TextInput, Button, Text, Chip } from 'react-native-paper';
+import { useTheme } from '../contexts/ThemeContext';
 import { layout, spaces, forms, chips } from '../styles';
 
 type ItemFormData = {
@@ -27,6 +28,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   item,
   mode,
 }) => {
+  const { paperTheme } = useTheme();
   const [formData, setFormData] = useState<ItemFormData>({
     name: '',
     sku: '',
@@ -36,6 +38,22 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [newTag, setNewTag] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const styles = StyleSheet.create({
+    tagInput: {
+      flex: 1,
+      marginRight: 8,
+    },
+    noTagsText: {
+      fontStyle: 'italic',
+      color: paperTheme.colors.outline,
+    },
+    deleteButtonContainer: {
+      borderTopWidth: 1,
+      borderTopColor: paperTheme.colors.outlineVariant,
+      paddingTop: 8,
+    },
+  });
 
   // Initialize form when modal opens or item changes
   useEffect(() => {
@@ -193,19 +211,3 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     </Portal>
   );
 };
-
-const styles = StyleSheet.create({
-  tagInput: {
-    flex: 1,
-    marginRight: 8,
-  },
-  noTagsText: {
-    fontStyle: 'italic',
-    color: '#666',
-  },
-  deleteButtonContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingTop: 8,
-  },
-});

@@ -3,14 +3,26 @@ import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
+import { useTheme } from '../contexts/ThemeContext';
 import { layout, containers, spaces, textAlign, forms } from '../styles';
 
 export default function AuthScreen() {
+  const { paperTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const styles = StyleSheet.create({
+    container: {
+      padding: 24,
+      gap: 12,
+    },
+    errorText: {
+      color: paperTheme.colors.error,
+    },
+  });
 
   const handleAuth = async () => {
     setLoading(true);
@@ -77,13 +89,3 @@ export default function AuthScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    gap: 12,
-  },
-  errorText: {
-    color: '#b00020',
-  },
-});
