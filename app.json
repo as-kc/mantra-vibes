@@ -1,13 +1,11 @@
 {
   "expo": {
-    "name": "Inventory Starter",
+    "name": "Mantra Vibes",
     "slug": "mantra-vibes",
-    "scheme": "inventory",
+    "scheme": "mantravibes",
     "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -15,25 +13,17 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.example.inventory"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "replace-with-your-eas-project-id"
-      }
+      "package": "com.iskconreading.mantravibes"
     },
     "plugins": [
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png"
-        }
-      ],
+      "expo-notifications",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "e34cbd01-9232-48bd-90a0-8d678cee0e5e"
+      }
+    },
+    "owner": "as-flow"
   }
 }
