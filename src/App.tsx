@@ -53,7 +53,7 @@ function AppTabs() {
       <Tabs.Screen name='Items' component={ItemsScreen} />
       <Tabs.Screen name='Reports' component={ReportsScreen} />
       <Tabs.Screen name='Stock' component={AddReportScreen} options={{ title: 'Add Report' }} />
-      {role === 'admin' && <Tabs.Screen name='Admin' component={AdminScreen} />}
+      {/* UNCOMMENT TO ENABLE ADMIN TAB {role === 'admin' && <Tabs.Screen name='Admin' component={AdminScreen} />} */}
       <Tabs.Screen name='Profile' component={ProfileScreen} />
     </Tabs.Navigator>
   );
