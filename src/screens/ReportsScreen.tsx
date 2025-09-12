@@ -1,6 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, View, Platform, StyleSheet } from 'react-native';
-import { Card, Text, IconButton, Button, Chip } from 'react-native-paper';
+import * as Clipboard from 'expo-clipboard';
+import {
+  Card,
+  Text,
+  IconButton,
+  Button,
+  Chip,
+  Portal,
+  Dialog,
+  DataTable,
+} from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
@@ -26,6 +36,8 @@ export default function ReportsScreen() {
   const [fromDate, setFromDate] = useState(dayjs().startOf('month').toDate());
   const [toDate, setToDate] = useState(dayjs().endOf('month').toDate());
   const [editingReport, setEditingReport] = useState<any>(null);
+  const [viewingReport, setViewingReport] = useState<any>(null);
+  const [viewingAllBooks, setViewingAllBooks] = useState(false);
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
 
@@ -81,12 +93,72 @@ export default function ReportsScreen() {
     );
   }, [reportsQ.data]);
 
+  const allBooksData = useMemo(() => {
+    const rows = reportsQ.data ?? [];
+    const bookTotals: Record<string, { name: string; sold: number }> = {};
+
+    rows.forEach(row => {
+      if (bookTotals[row.item_id]) {
+        bookTotals[row.item_id].sold += row.sold;
+      } else {
+        bookTotals[row.item_id] = {
+          name: row.item_name,
+          sold: row.sold,
+        };
+      }
+    });
+
+    return Object.values(bookTotals).sort((a, b) => b.sold - a.sold);
+  }, [reportsQ.data]);
+
   const handleEditReport = (report: any) => {
     setEditingReport(report);
   };
 
   const handleCloseEdit = () => {
     setEditingReport(null);
+  };
+
+  const handleViewReport = (report: any) => {
+    setViewingReport(report);
+  };
+
+  const handleCloseView = () => {
+    setViewingReport(null);
+  };
+
+  const handleViewAllBooks = () => {
+    setViewingAllBooks(true);
+  };
+
+  const handleCloseAllBooks = () => {
+    setViewingAllBooks(false);
+  };
+
+  const copyToClipboard = (data: { name: string; sold: number }[], report?: any, isAggregated?: boolean) => {
+    let text = '';
+    
+    if (report) {
+      // Individual report copy with header
+      text += `${report.note || 'Report'}\n`;
+      text += `${dayjs(report.created_at).format('MMM DD, YYYY • h:mm A')}\n`;
+      text += `Total books sold: ${report.lines.reduce((sum: number, ln: LineRow) => sum + ln.sold, 0)}\n`;
+      if (report.total_revenue !== null) {
+        text += `Total revenue: ${report.total_revenue}\n`;
+      }
+      text += '\n';
+      text += data.map(item => `${item.name}: ${item.sold}`).join('\n');
+    } else if (isAggregated) {
+      // All books copy with aggregated header
+      text += `Aggregated stock report between ${dayjs(fromDate).format('MMM DD, YYYY')} and ${dayjs(toDate).format('MMM DD, YYYY')}\n`;
+      text += `Total books sold: ${totals.sold}\n\n`;
+      text += data.map(item => `${item.name}: ${item.sold}`).join('\n');
+    } else {
+      // Fallback: just the data
+      text = data.map(item => `${item.name}: ${item.sold}`).join('\n');
+    }
+    
+    Clipboard.setStringAsync(text);
   };
 
   const handleDateChange = (event: any, selectedDate: Date | undefined, isFromDate: boolean) => {
@@ -160,8 +232,16 @@ export default function ReportsScreen() {
           </Button>
         </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: 8,
+          }}
+        >
           <Text>Total sold: {totals.sold}</Text>
+          <IconButton style={{ paddingLeft: 16 }} icon='eye' onPress={handleViewAllBooks} />
         </View>
 
         <FlatList
@@ -171,23 +251,20 @@ export default function ReportsScreen() {
             <Card style={{ marginVertical: 6 }}>
               <Card.Title
                 title={item.note ? item.note : 'Report'}
-                subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')}
+                subtitle={dayjs(item.created_at).format('MMM DD, YYYY • h:mm A')}
                 right={props => (
-                  <IconButton {...props} icon='pencil' onPress={() => handleEditReport(item)} />
+                  <View style={{ flexDirection: 'row' }}>
+                    <IconButton {...props} icon='pencil' onPress={() => handleEditReport(item)} />
+                    <IconButton {...props} icon='eye' onPress={() => handleViewReport(item)} />
+                  </View>
                 )}
               />
               <Card.Content>
-                {item.lines.map((ln: LineRow) => (
-                  <View key={ln.line_id} style={{ marginBottom: 6 }}>
-                    <Text style={{ fontWeight: '600' }}>{ln.item_name}</Text>
-                    <Text>
-                      Start: {ln.start_stock} End: {ln.end_stock} Sold: {ln.sold}
-                    </Text>
-                  </View>
-                ))}
-                {item.total_revenue !== null && (
-                  <Text>Total revenue (batch): {item.total_revenue}</Text>
-                )}
+                <Text>
+                  Total books sold:{' '}
+                  {item.lines.reduce((sum: number, ln: LineRow) => sum + ln.sold, 0)}
+                </Text>
+                {item.total_revenue !== null && <Text>Total revenue: {item.total_revenue}</Text>}
               </Card.Content>
             </Card>
           )}
@@ -198,6 +275,66 @@ export default function ReportsScreen() {
           onDismiss={handleCloseEdit}
           report={editingReport}
         />
+
+        {/* View Report Modal */}
+        <Portal>
+          <Dialog visible={!!viewingReport} onDismiss={handleCloseView}>
+            <Dialog.Content>
+              <DataTable>
+                <DataTable.Header>
+                  <DataTable.Title>Item</DataTable.Title>
+                  <DataTable.Title numeric>Amount Sold</DataTable.Title>
+                </DataTable.Header>
+                {viewingReport?.lines?.map((ln: LineRow) => (
+                  <DataTable.Row key={ln.line_id}>
+                    <DataTable.Cell>{ln.item_name}</DataTable.Cell>
+                    <DataTable.Cell numeric>{ln.sold}</DataTable.Cell>
+                  </DataTable.Row>
+                ))}
+              </DataTable>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button
+                onPress={() =>
+                  copyToClipboard(
+                    viewingReport?.lines?.map((ln: LineRow) => ({
+                      name: ln.item_name,
+                      sold: ln.sold,
+                    })) || [],
+                    viewingReport
+                  )
+                }
+              >
+                Copy
+              </Button>
+              <Button onPress={handleCloseView}>Close</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+
+        {/* View All Books Modal */}
+        <Portal>
+          <Dialog visible={viewingAllBooks} onDismiss={handleCloseAllBooks}>
+            <Dialog.Content>
+              <DataTable>
+                <DataTable.Header>
+                  <DataTable.Title>Item</DataTable.Title>
+                  <DataTable.Title numeric>Amount Sold</DataTable.Title>
+                </DataTable.Header>
+                {allBooksData.map((book, index) => (
+                  <DataTable.Row key={`${book.name}-${index}`}>
+                    <DataTable.Cell>{book.name}</DataTable.Cell>
+                    <DataTable.Cell numeric>{book.sold}</DataTable.Cell>
+                  </DataTable.Row>
+                ))}
+              </DataTable>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => copyToClipboard(allBooksData, undefined, true)}>Copy</Button>
+              <Button onPress={handleCloseAllBooks}>Close</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
 
         {/* Date Pickers */}
         {showFromPicker && (
