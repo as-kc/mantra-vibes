@@ -66,28 +66,28 @@ export const spaces = StyleSheet.create({
   paddingLG: { padding: spacing.lg },
   paddingXL: { padding: spacing.xl },
   paddingXXL: { padding: spacing.xxl },
-  
+
   marginXS: { margin: spacing.xs },
   marginSM: { margin: spacing.sm },
   marginMD: { margin: spacing.md },
   marginLG: { margin: spacing.lg },
   marginXL: { margin: spacing.xl },
   marginXXL: { margin: spacing.xxl },
-  
+
   marginTopXS: { marginTop: spacing.xs },
   marginTopSM: { marginTop: spacing.sm },
   marginTopMD: { marginTop: spacing.md },
   marginTopLG: { marginTop: spacing.lg },
   marginTopXL: { marginTop: spacing.xl },
   marginTopXXL: { marginTop: spacing.xxl },
-  
+
   marginBottomXS: { marginBottom: spacing.xs },
   marginBottomSM: { marginBottom: spacing.sm },
   marginBottomMD: { marginBottom: spacing.md },
   marginBottomLG: { marginTop: spacing.lg },
   marginBottomXL: { marginBottom: spacing.xl },
   marginBottomXXL: { marginBottom: spacing.xxl },
-  
+
   gapXS: { gap: spacing.xs },
   gapSM: { gap: spacing.sm },
   gapMD: { gap: spacing.md },

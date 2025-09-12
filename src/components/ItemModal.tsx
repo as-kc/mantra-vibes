@@ -168,9 +168,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                 {tag}
               </Chip>
             ))}
-            {tags.length === 0 && (
-              <Text style={styles.noTagsText}>No tags</Text>
-            )}
+            {tags.length === 0 && <Text style={styles.noTagsText}>No tags</Text>}
           </View>
         </Dialog.Content>
 

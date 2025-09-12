@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { 
-  MD3LightTheme, 
-  MD3DarkTheme, 
+import {
+  MD3LightTheme,
+  MD3DarkTheme,
   adaptNavigationTheme,
   Provider as PaperProvider,
 } from 'react-native-paper';
-import { 
-  DefaultTheme as NavigationLightTheme, 
+import {
+  DefaultTheme as NavigationLightTheme,
   DarkTheme as NavigationDarkTheme,
 } from '@react-navigation/native';
 
@@ -104,11 +104,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     navigationTheme,
   };
 
-  return (
-    <ThemeContext.Provider value={contextValue}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

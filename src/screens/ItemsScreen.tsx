@@ -244,9 +244,7 @@ export default function ItemsScreen({ navigation }: any) {
                 <Text>Current Stock: {item.current_stock}</Text>
                 {item.is_low && <Text style={styles.lowStockText}>Low stock!</Text>}
                 {item.tags?.length ? <Text>Tags: {item.tags.join(', ')} </Text> : null}
-                {isInReport && (
-                  <Text style={styles.inReportText}>✓ In current report</Text>
-                )}
+                {isInReport && <Text style={styles.inReportText}>✓ In current report</Text>}
               </Card.Content>
               <Card.Actions>
                 {isInReport ? (
@@ -263,11 +261,7 @@ export default function ItemsScreen({ navigation }: any) {
         }}
       />
 
-      <FAB
-        style={containers.fabPosition}
-        icon='plus'
-        onPress={handleAddItem}
-      />
+      <FAB style={containers.fabPosition} icon='plus' onPress={handleAddItem} />
 
       {/* Clear Report Confirmation Dialog */}
       <ConfirmationDialog

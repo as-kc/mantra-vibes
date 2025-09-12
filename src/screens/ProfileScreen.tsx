@@ -27,46 +27,46 @@ export default function ProfileScreen({ navigation }: any) {
           Profile
         </Text>
 
-      <Card style={[containers.card, spaces.marginTopLG]}>
-        <Card.Content style={containers.cardContent}>
-          <Text variant='titleMedium' style={spaces.marginBottomSM}>
-            Account Information
-          </Text>
-          <Text style={spaces.marginBottomXS}>User: {email}</Text>
-          <Text>Role: {role}</Text>
-        </Card.Content>
-      </Card>
+        <Card style={[containers.card, spaces.marginTopLG]}>
+          <Card.Content style={containers.cardContent}>
+            <Text variant='titleMedium' style={spaces.marginBottomSM}>
+              Account Information
+            </Text>
+            <Text style={spaces.marginBottomXS}>User: {email}</Text>
+            <Text>Role: {role}</Text>
+          </Card.Content>
+        </Card>
 
-      <Card style={containers.card}>
-        <Card.Content style={containers.cardContent}>
-          <Text variant='titleMedium' style={spaces.marginBottomSM}>
-            Theme Settings
-          </Text>
-          <RadioButton.Group onValueChange={setThemeMode} value={themeMode}>
-            <List.Item
-              title='Light Theme'
-              left={() => <RadioButton value='light' />}
-              onPress={() => setThemeMode('light')}
-            />
-            <List.Item
-              title='Dark Theme'
-              left={() => <RadioButton value='dark' />}
-              onPress={() => setThemeMode('dark')}
-            />
-            <List.Item
-              title='System Default'
-              left={() => <RadioButton value='system' />}
-              onPress={() => setThemeMode('system')}
-            />
-          </RadioButton.Group>
-        </Card.Content>
-      </Card>
+        <Card style={containers.card}>
+          <Card.Content style={containers.cardContent}>
+            <Text variant='titleMedium' style={spaces.marginBottomSM}>
+              Theme Settings
+            </Text>
+            <RadioButton.Group onValueChange={setThemeMode} value={themeMode}>
+              <List.Item
+                title='Light Theme'
+                left={() => <RadioButton value='light' />}
+                onPress={() => setThemeMode('light')}
+              />
+              <List.Item
+                title='Dark Theme'
+                left={() => <RadioButton value='dark' />}
+                onPress={() => setThemeMode('dark')}
+              />
+              <List.Item
+                title='System Default'
+                left={() => <RadioButton value='system' />}
+                onPress={() => setThemeMode('system')}
+              />
+            </RadioButton.Group>
+          </Card.Content>
+        </Card>
 
-      <View style={spaces.marginTopXXL}>
-        <Button mode='outlined' onPress={handleLogout} style={styles.logoutButton}>
-          Logout
-        </Button>
-      </View>
+        <View style={spaces.marginTopXXL}>
+          <Button mode='outlined' onPress={handleLogout} style={styles.logoutButton}>
+            Logout
+          </Button>
+        </View>
       </View>
     </SafeAreaView>
   );

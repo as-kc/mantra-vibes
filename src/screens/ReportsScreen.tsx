@@ -127,108 +127,108 @@ export default function ReportsScreen() {
       <View style={containers.screen}>
         <Text variant='titleLarge'>Reports</Text>
 
-      {/* Preset Date Range Buttons */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 8 }}>
-        <Chip 
-          onPress={() => setDateRange('week')} 
-          style={{ flex: 1, marginHorizontal: 4 }}
-          textStyle={{ textAlign: 'center' }}
-        >
-          Past Week
-        </Chip>
-        <Chip 
-          onPress={() => setDateRange('month')} 
-          style={{ flex: 1, marginHorizontal: 4 }}
-          textStyle={{ textAlign: 'center' }}
-        >
-          Past Month
-        </Chip>
-        <Chip 
-          onPress={() => setDateRange('year')} 
-          style={{ flex: 1, marginHorizontal: 4 }}
-          textStyle={{ textAlign: 'center' }}
-        >
-          Past Year
-        </Chip>
-      </View>
+        {/* Preset Date Range Buttons */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 8 }}>
+          <Chip
+            onPress={() => setDateRange('week')}
+            style={{ flex: 1, marginHorizontal: 4 }}
+            textStyle={{ textAlign: 'center' }}
+          >
+            Past Week
+          </Chip>
+          <Chip
+            onPress={() => setDateRange('month')}
+            style={{ flex: 1, marginHorizontal: 4 }}
+            textStyle={{ textAlign: 'center' }}
+          >
+            Past Month
+          </Chip>
+          <Chip
+            onPress={() => setDateRange('year')}
+            style={{ flex: 1, marginHorizontal: 4 }}
+            textStyle={{ textAlign: 'center' }}
+          >
+            Past Year
+          </Chip>
+        </View>
 
-      {/* Date Picker Buttons */}
-      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-        <Button
-          mode='outlined'
-          onPress={() => setShowFromPicker(true)}
-          style={{ flex: 1 }}
-          contentStyle={{ paddingVertical: 8 }}
-        >
-          From: {dayjs(fromDate).format('MMM DD, YYYY')}
-        </Button>
-        <Button
-          mode='outlined'
-          onPress={() => setShowToPicker(true)}
-          style={{ flex: 1 }}
-          contentStyle={{ paddingVertical: 8 }}
-        >
-          To: {dayjs(toDate).format('MMM DD, YYYY')}
-        </Button>
-      </View>
+        {/* Date Picker Buttons */}
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+          <Button
+            mode='outlined'
+            onPress={() => setShowFromPicker(true)}
+            style={{ flex: 1 }}
+            contentStyle={{ paddingVertical: 8 }}
+          >
+            From: {dayjs(fromDate).format('MMM DD, YYYY')}
+          </Button>
+          <Button
+            mode='outlined'
+            onPress={() => setShowToPicker(true)}
+            style={{ flex: 1 }}
+            contentStyle={{ paddingVertical: 8 }}
+          >
+            To: {dayjs(toDate).format('MMM DD, YYYY')}
+          </Button>
+        </View>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8 }}>
-        <Text>Total sold: {totals.sold}</Text>
-      </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8 }}>
+          <Text>Total sold: {totals.sold}</Text>
+        </View>
 
-      <FlatList
-        data={grouped}
-        keyExtractor={(r: any) => r.id}
-        renderItem={({ item }: any) => (
-          <Card style={{ marginVertical: 6 }}>
-            <Card.Title
-              title={item.note ? item.note : 'Report'}
-              subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')}
-              right={props => (
-                <IconButton {...props} icon='pencil' onPress={() => handleEditReport(item)} />
-              )}
-            />
-            <Card.Content>
-              {item.lines.map((ln: LineRow) => (
-                <View key={ln.line_id} style={{ marginBottom: 6 }}>
-                  <Text style={{ fontWeight: '600' }}>{ln.item_name}</Text>
-                  <Text>
-                    Start: {ln.start_stock} End: {ln.end_stock} Sold: {ln.sold}
-                  </Text>
-                </View>
-              ))}
-              {item.total_revenue !== null && (
-                <Text>Total revenue (batch): {item.total_revenue}</Text>
-              )}
-            </Card.Content>
-          </Card>
+        <FlatList
+          data={grouped}
+          keyExtractor={(r: any) => r.id}
+          renderItem={({ item }: any) => (
+            <Card style={{ marginVertical: 6 }}>
+              <Card.Title
+                title={item.note ? item.note : 'Report'}
+                subtitle={dayjs(item.created_at).format('YYYY-MM-DD HH:mm')}
+                right={props => (
+                  <IconButton {...props} icon='pencil' onPress={() => handleEditReport(item)} />
+                )}
+              />
+              <Card.Content>
+                {item.lines.map((ln: LineRow) => (
+                  <View key={ln.line_id} style={{ marginBottom: 6 }}>
+                    <Text style={{ fontWeight: '600' }}>{ln.item_name}</Text>
+                    <Text>
+                      Start: {ln.start_stock} End: {ln.end_stock} Sold: {ln.sold}
+                    </Text>
+                  </View>
+                ))}
+                {item.total_revenue !== null && (
+                  <Text>Total revenue (batch): {item.total_revenue}</Text>
+                )}
+              </Card.Content>
+            </Card>
+          )}
+        />
+
+        <EditReportDialog
+          visible={!!editingReport}
+          onDismiss={handleCloseEdit}
+          report={editingReport}
+        />
+
+        {/* Date Pickers */}
+        {showFromPicker && (
+          <DateTimePicker
+            value={fromDate}
+            mode='date'
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, selectedDate) => handleDateChange(event, selectedDate, true)}
+          />
         )}
-      />
 
-      <EditReportDialog
-        visible={!!editingReport}
-        onDismiss={handleCloseEdit}
-        report={editingReport}
-      />
-
-      {/* Date Pickers */}
-      {showFromPicker && (
-        <DateTimePicker
-          value={fromDate}
-          mode='date'
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => handleDateChange(event, selectedDate, true)}
-        />
-      )}
-
-      {showToPicker && (
-        <DateTimePicker
-          value={toDate}
-          mode='date'
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => handleDateChange(event, selectedDate, false)}
-        />
-      )}
+        {showToPicker && (
+          <DateTimePicker
+            value={toDate}
+            mode='date'
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, selectedDate) => handleDateChange(event, selectedDate, false)}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

@@ -101,33 +101,35 @@ export default function AddReportScreen({ route }: any) {
   return (
     <SafeAreaView style={containers.safeAreaScreen}>
       <ScrollView style={layout.flex1} contentContainerStyle={styles.container}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text variant='titleLarge'>Add Report</Text>
-        <IconButton icon='delete' onPress={() => setClearDialogVisible(true)} />
-      </View>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Text variant='titleLarge'>Add Report</Text>
+          <IconButton icon='delete' onPress={() => setClearDialogVisible(true)} />
+        </View>
 
-      <ReportForm
-        lines={reportLines}
-        setLines={setReportLines}
-        note={note}
-        setNote={setNote}
-        totalRevenue={totalRevenue}
-        setTotalRevenue={setTotalRevenue}
-        onSave={handleSave}
-        saveButtonText='Save Report'
-        showAddFirstItem={true}
-      />
+        <ReportForm
+          lines={reportLines}
+          setLines={setReportLines}
+          note={note}
+          setNote={setNote}
+          totalRevenue={totalRevenue}
+          setTotalRevenue={setTotalRevenue}
+          onSave={handleSave}
+          saveButtonText='Save Report'
+          showAddFirstItem={true}
+        />
 
-      {/* Clear Report Confirmation Dialog */}
-      <ConfirmationDialog
-        visible={clearDialogVisible}
-        onDismiss={() => setClearDialogVisible(false)}
-        onConfirm={handleClearReport}
-        title='Clear Current Report?'
-        message='This will remove all items from the current report. Are you sure?'
-        confirmText='Clear Report'
-        cancelText='Cancel'
-      />
+        {/* Clear Report Confirmation Dialog */}
+        <ConfirmationDialog
+          visible={clearDialogVisible}
+          onDismiss={() => setClearDialogVisible(false)}
+          onConfirm={handleClearReport}
+          title='Clear Current Report?'
+          message='This will remove all items from the current report. Are you sure?'
+          confirmText='Clear Report'
+          cancelText='Cancel'
+        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -26,7 +26,7 @@ const queryClient = new QueryClient();
 function AppTabs() {
   const { role } = useProfileRole();
   const { navigationTheme } = useTheme();
-  
+
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({
