@@ -14,10 +14,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { EditReportDialog } from '../components/EditReportDialog';
-import { containers, layout, spaces, chips } from '../styles';
+import { useProfileRole } from '../hooks/useProfileRole';
+import { containers, layout, spaces, chips, textAlign } from '../styles';
 
 type LineRow = {
   report_id: string;
@@ -40,6 +41,11 @@ export default function ReportsScreen() {
   const [viewingAllItems, setViewingAllItems] = useState(false);
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<any>(null);
+
+  const queryClient = useQueryClient();
+  const { role } = useProfileRole();
 
   // Convert dates to string format for API calls
   const from = dayjs(fromDate).format('YYYY-MM-DD');
@@ -56,6 +62,32 @@ export default function ReportsScreen() {
         throw error;
       }
       return (data ?? []) as LineRow[];
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (reportId: string) => {
+      console.log('Attempting to delete report:', reportId);
+      const { data, error } = await supabase.rpc('delete_stock_report_batch', {
+        p_report_id: reportId,
+      });
+      console.log('Delete response:', { data, error });
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      console.log('Delete successful, refreshing data...');
+      queryClient.invalidateQueries({ queryKey: ['reports-multi'] });
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      setDeleteConfirmVisible(false);
+      setReportToDelete(null);
+    },
+    onError: (error) => {
+      console.error('Delete mutation failed:', error);
+      alert(`Failed to delete report: ${error.message}`);
     },
   });
 
@@ -135,9 +167,29 @@ export default function ReportsScreen() {
     setViewingAllItems(false);
   };
 
-  const copyToClipboard = (data: { name: string; sold: number }[], report?: any, isAggregated?: boolean) => {
+  const handleDeleteReport = (report: any) => {
+    setReportToDelete(report);
+    setDeleteConfirmVisible(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (reportToDelete) {
+      deleteMutation.mutate(reportToDelete.id);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmVisible(false);
+    setReportToDelete(null);
+  };
+
+  const copyToClipboard = (
+    data: { name: string; sold: number }[],
+    report?: any,
+    isAggregated?: boolean
+  ) => {
     let text = '';
-    
+
     if (report) {
       // Individual report copy with header
       text += `${report.note || 'Report'}\n`;
@@ -157,7 +209,7 @@ export default function ReportsScreen() {
       // Fallback: just the data
       text = data.map(item => `${item.name}: ${item.sold}`).join('\n');
     }
-    
+
     Clipboard.setStringAsync(text);
   };
 
@@ -197,7 +249,9 @@ export default function ReportsScreen() {
   return (
     <SafeAreaView style={containers.safeAreaScreen}>
       <View style={containers.screen}>
-        <Text variant='titleLarge'>Reports</Text>
+        <Text variant='titleLarge' style={textAlign.center}>
+          Reports
+        </Text>
 
         {/* Preset Date Range Buttons */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginVertical: 8 }}>
@@ -254,6 +308,9 @@ export default function ReportsScreen() {
                 subtitle={dayjs(item.created_at).format('MMM DD, YYYY • h:mm A')}
                 right={props => (
                   <View style={{ flexDirection: 'row' }}>
+                    {role === 'admin' && (
+                      <IconButton {...props} icon='delete' onPress={() => handleDeleteReport(item)} />
+                    )}
                     <IconButton {...props} icon='pencil' onPress={() => handleEditReport(item)} />
                     <IconButton {...props} icon='eye' onPress={() => handleViewReport(item)} />
                   </View>
@@ -332,6 +389,35 @@ export default function ReportsScreen() {
             <Dialog.Actions>
               <Button onPress={() => copyToClipboard(allItemsData, undefined, true)}>Copy</Button>
               <Button onPress={handleCloseAllItems}>Close</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+
+        {/* Delete Confirmation Dialog */}
+        <Portal>
+          <Dialog visible={deleteConfirmVisible} onDismiss={handleCancelDelete}>
+            <Dialog.Title>Delete Report</Dialog.Title>
+            <Dialog.Content>
+              <Text>
+                Are you sure you want to delete this report? This will restore the stock levels and
+                cannot be undone.
+              </Text>
+              {reportToDelete && (
+                <Text style={{ marginTop: 8, fontWeight: 'bold' }}>
+                  "{reportToDelete.note || 'Report'}" -{' '}
+                  {dayjs(reportToDelete.created_at).format('MMM DD, YYYY • h:mm A')}
+                </Text>
+              )}
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={handleCancelDelete}>Cancel</Button>
+              <Button
+                onPress={handleConfirmDelete}
+                loading={deleteMutation.isPending}
+                disabled={deleteMutation.isPending}
+              >
+                Delete
+              </Button>
             </Dialog.Actions>
           </Dialog>
         </Portal>

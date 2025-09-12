@@ -317,6 +317,40 @@ begin
   return p_report_id;
 end $$;
 
+-- RPC: delete multi-item stock report
+create or replace function public.delete_stock_report_batch(
+  p_report_id uuid
+) returns void
+language plpgsql security definer
+as $$
+declare
+  v_old_line record;
+begin
+  -- Check if user owns this report or is admin
+  if not exists (
+    select 1 from public.stock_report_batches b
+    join public.profiles p on p.id = auth.uid()
+    where b.id = p_report_id 
+    and (b.created_by = auth.uid() or p.role = 'admin')
+  ) then
+    raise exception 'You can only delete your own reports or admin can delete any report';
+  end if;
+
+  -- Revert stock changes before deleting
+  for v_old_line in 
+    select item_id, sold from public.stock_report_lines 
+    where report_id = p_report_id
+  loop
+    -- Add back the previously subtracted stock
+    update public.items
+    set current_stock = current_stock + v_old_line.sold
+    where id = v_old_line.item_id;
+  end loop;
+
+  -- Delete the report (lines will cascade)
+  delete from public.stock_report_batches where id = p_report_id;
+end $$;
+
 -- RLS
 alter table public.profiles enable row level security;
 alter table public.items enable row level security;
