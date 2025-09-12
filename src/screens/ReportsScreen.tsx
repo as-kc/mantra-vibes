@@ -37,7 +37,7 @@ export default function ReportsScreen() {
   const [toDate, setToDate] = useState(dayjs().endOf('month').toDate());
   const [editingReport, setEditingReport] = useState<any>(null);
   const [viewingReport, setViewingReport] = useState<any>(null);
-  const [viewingAllBooks, setViewingAllBooks] = useState(false);
+  const [viewingAllItems, setViewingAllItems] = useState(false);
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
 
@@ -93,22 +93,22 @@ export default function ReportsScreen() {
     );
   }, [reportsQ.data]);
 
-  const allBooksData = useMemo(() => {
+  const allItemsData = useMemo(() => {
     const rows = reportsQ.data ?? [];
-    const bookTotals: Record<string, { name: string; sold: number }> = {};
+    const itemTotals: Record<string, { name: string; sold: number }> = {};
 
     rows.forEach(row => {
-      if (bookTotals[row.item_id]) {
-        bookTotals[row.item_id].sold += row.sold;
+      if (itemTotals[row.item_id]) {
+        itemTotals[row.item_id].sold += row.sold;
       } else {
-        bookTotals[row.item_id] = {
+        itemTotals[row.item_id] = {
           name: row.item_name,
           sold: row.sold,
         };
       }
     });
 
-    return Object.values(bookTotals).sort((a, b) => b.sold - a.sold);
+    return Object.values(itemTotals).sort((a, b) => b.sold - a.sold);
   }, [reportsQ.data]);
 
   const handleEditReport = (report: any) => {
@@ -127,12 +127,12 @@ export default function ReportsScreen() {
     setViewingReport(null);
   };
 
-  const handleViewAllBooks = () => {
-    setViewingAllBooks(true);
+  const handleViewAllItems = () => {
+    setViewingAllItems(true);
   };
 
-  const handleCloseAllBooks = () => {
-    setViewingAllBooks(false);
+  const handleCloseAllItems = () => {
+    setViewingAllItems(false);
   };
 
   const copyToClipboard = (data: { name: string; sold: number }[], report?: any, isAggregated?: boolean) => {
@@ -142,16 +142,16 @@ export default function ReportsScreen() {
       // Individual report copy with header
       text += `${report.note || 'Report'}\n`;
       text += `${dayjs(report.created_at).format('MMM DD, YYYY • h:mm A')}\n`;
-      text += `Total books sold: ${report.lines.reduce((sum: number, ln: LineRow) => sum + ln.sold, 0)}\n`;
+      text += `Total stock sold: ${report.lines.reduce((sum: number, ln: LineRow) => sum + ln.sold, 0)}\n`;
       if (report.total_revenue !== null) {
         text += `Total revenue: ${report.total_revenue}\n`;
       }
       text += '\n';
       text += data.map(item => `${item.name}: ${item.sold}`).join('\n');
     } else if (isAggregated) {
-      // All books copy with aggregated header
+      // All items copy with aggregated header
       text += `Aggregated stock report between ${dayjs(fromDate).format('MMM DD, YYYY')} and ${dayjs(toDate).format('MMM DD, YYYY')}\n`;
-      text += `Total books sold: ${totals.sold}\n\n`;
+      text += `Total stock sold: ${totals.sold}\n\n`;
       text += data.map(item => `${item.name}: ${item.sold}`).join('\n');
     } else {
       // Fallback: just the data
@@ -241,7 +241,7 @@ export default function ReportsScreen() {
           }}
         >
           <Text>Total sold: {totals.sold}</Text>
-          <IconButton style={{ paddingLeft: 16 }} icon='eye' onPress={handleViewAllBooks} />
+          <IconButton style={{ paddingLeft: 16 }} icon='eye' onPress={handleViewAllItems} />
         </View>
 
         <FlatList
@@ -261,7 +261,7 @@ export default function ReportsScreen() {
               />
               <Card.Content>
                 <Text>
-                  Total books sold:{' '}
+                  Total stock sold:{' '}
                   {item.lines.reduce((sum: number, ln: LineRow) => sum + ln.sold, 0)}
                 </Text>
                 {item.total_revenue !== null && <Text>Total revenue: {item.total_revenue}</Text>}
@@ -312,26 +312,26 @@ export default function ReportsScreen() {
           </Dialog>
         </Portal>
 
-        {/* View All Books Modal */}
+        {/* View All Items Modal */}
         <Portal>
-          <Dialog visible={viewingAllBooks} onDismiss={handleCloseAllBooks}>
+          <Dialog visible={viewingAllItems} onDismiss={handleCloseAllItems}>
             <Dialog.Content>
               <DataTable>
                 <DataTable.Header>
                   <DataTable.Title>Item</DataTable.Title>
                   <DataTable.Title numeric>Amount Sold</DataTable.Title>
                 </DataTable.Header>
-                {allBooksData.map((book, index) => (
-                  <DataTable.Row key={`${book.name}-${index}`}>
-                    <DataTable.Cell>{book.name}</DataTable.Cell>
-                    <DataTable.Cell numeric>{book.sold}</DataTable.Cell>
+                {allItemsData.map((item, index) => (
+                  <DataTable.Row key={`${item.name}-${index}`}>
+                    <DataTable.Cell>{item.name}</DataTable.Cell>
+                    <DataTable.Cell numeric>{item.sold}</DataTable.Cell>
                   </DataTable.Row>
                 ))}
               </DataTable>
             </Dialog.Content>
             <Dialog.Actions>
-              <Button onPress={() => copyToClipboard(allBooksData, undefined, true)}>Copy</Button>
-              <Button onPress={handleCloseAllBooks}>Close</Button>
+              <Button onPress={() => copyToClipboard(allItemsData, undefined, true)}>Copy</Button>
+              <Button onPress={handleCloseAllItems}>Close</Button>
             </Dialog.Actions>
           </Dialog>
         </Portal>
