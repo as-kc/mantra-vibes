@@ -59,9 +59,6 @@ export default function ProfileScreen({ navigation }: any) {
               onPress={() => setThemeMode('system')}
             />
           </RadioButton.Group>
-          <Text variant='bodySmall' style={[spaces.marginTopSM, styles.themeStatus]}>
-            Current mode: {themeMode} {isDark ? '(Dark)' : '(Light)'}
-          </Text>
         </Card.Content>
       </Card>
 
