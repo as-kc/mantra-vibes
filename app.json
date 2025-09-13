@@ -3,7 +3,7 @@
     "name": "Mantra Vibes",
     "slug": "mantra-vibes",
     "scheme": "mantravibes",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "orientation": "portrait",
     "splash": {
       "resizeMode": "contain",
