@@ -85,7 +85,7 @@ export default function ReportsScreen() {
       setDeleteConfirmVisible(false);
       setReportToDelete(null);
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Delete mutation failed:', error);
       alert(`Failed to delete report: ${error.message}`);
     },
@@ -309,7 +309,11 @@ export default function ReportsScreen() {
                 right={props => (
                   <View style={{ flexDirection: 'row' }}>
                     {role === 'admin' && (
-                      <IconButton {...props} icon='delete' onPress={() => handleDeleteReport(item)} />
+                      <IconButton
+                        {...props}
+                        icon='delete'
+                        onPress={() => handleDeleteReport(item)}
+                      />
                     )}
                     <IconButton {...props} icon='pencil' onPress={() => handleEditReport(item)} />
                     <IconButton {...props} icon='eye' onPress={() => handleViewReport(item)} />

@@ -1,5 +1,6 @@
 import 'react-native-url-polyfill/auto';
 import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
 import { createClient } from '@supabase/supabase-js';
 
 const ExpoSecureStoreAdapter = {
@@ -8,8 +9,9 @@ const ExpoSecureStoreAdapter = {
   removeItem: (key: string) => SecureStore.deleteItemAsync(key),
 };
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
-const anon = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
+const url = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL;
+const anon =
+  Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(url, anon, {
   auth: {
